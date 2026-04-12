@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tactical Grid Matrix v12.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #080808;
+            --ui-bg: rgba(10, 10, 10, 0.96);
+            --border: #222;
+            --text: #f0f0ee;
+            --accent: #444;
+        }
+
+        body.light-mode {
+            --bg: #f0f0ee;
+            --ui-bg: rgba(245, 245, 243, 0.98);
+            --border: #ccc;
+            --text: #080808;
+            --accent: #bbb;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Geist Mono', monospace;
+            overflow: hidden;
+            user-select: none;
+            transition: background-color 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas {
+            display: block;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+            background: #000;
+        }
+
+        #ui-overlay {
+            position: absolute;
+            bottom: 24px;
+            left: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: var(--ui-bg);
+            padding: 24px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(30px);
+            z-index: 100;
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            width: 310px;
+            border-radius: 2px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .control-group { display: flex; flex-direction: column; gap: 10px; }
+        .row { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+
+        input[type="range"] {
+            appearance: none;
+            width: 120px;
+            height: 1px;
+            background: var(--accent);
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 10px;
+            height: 10px;
+            background: var(--text);
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        .btn {
+            border: 1px solid var(--accent);
+            padding: 10px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 9px;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            background: rgba(255,255,255,0.02);
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .btn:hover { background: var(--text); color: var(--bg); border-color: var(--text); }
+        #file-input { display: none; }
+
+        select {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--accent);
+            font-family: 'Geist Mono';
+            font-size: 9px;
+            padding: 4px;
+            outline: none;
+            width: 150px;
+        }
+
+        .divider { margin: 8px 0; border-top: 1px solid var(--border); }
+
+        .gradient-stops { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+        .stop-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(128,128,128,0.1);
+            padding: 5px;
+            border: 1px solid var(--border);
+        }
+
+        .stop-item input[type="color"] {
+            width: 20px;
+            height: 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        input[type="checkbox"] { accent-color: var(--text); cursor: pointer; scale: 1.2; }
+        .label { color: #666; font-weight: 400; }
+        .light-mode .label { color: #888; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--accent); }
+    </style>
+</head>
+<body>
+
+    <div id="ui-overlay">
+        <div class="control-group">
+            <label class="btn" for="file-input">IMPORT TEXTURE (LAYER 1)</label>
+            <input type="file" id="file-input" accept="image/*">
+        </div>
+        
+        <div class="control-group divider">
+            <div class="row">
+                <span class="label">PALETTE</span>
+                <select id="palette-select">
+                    <option value="original">Original Cold</option>
+                    <option value="zed">Zed Atmosphere</option>
+                    <option value="ghostty">Ghostty Tokyo</option>
+                    <option value="nord">Nordic Frost</option>
+                    <option value="monochrome">Pure Monochrome</option>
+                </select>
+            </div>
+            <div class="row">
+                <span class="label">DITHER TYPE</span>
+                <select id="dither-select">
+                    <option value="classic">Classic ASCII</option>
+                    <option value="characters">Characters</option>
+                    <option value="crt">CRT Phosphor</option>
+                    <option value="waffle">Waffle Pattern</option>
+                    <option value="porthole">Porthole Circles</option>
+                </select>
+            </div>
+            <div class="row">
+                <span class="label">SPRITE PRESET</span>
+                <select id="sprite-preset">
+                    <option value="none">None</option>
+                    <option value="scan" selected>Cine Sweep</option>
+                    <option value="pulse">Radial Aura</option>
+                    <option value="wave">Organic Wave</option>
+                </select>
+            </div>
+            <div class="row" id="wave-type-row" style="display: none;">
+                <span class="label">WAVE FLOW</span>
+                <select id="wave-type-select">
+                    <option value="fluid">Fluid Flow</option>
+                    <option value="chaos">Chaos Turbulence</option>
+                    <option value="ripples">Interference Ripples</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="control-group divider">
+            <div class="row">
+                <span class="label">GRADIENT MAP</span>
+                <input type="checkbox" id="gradient-toggle">
+            </div>
+            <div id="gradient-controls" style="display: none;">
+                <div class="gradient-stops" id="gradient-stops-list"></div>
+                <div class="btn" id="add-stop-btn" style="padding: 6px; margin-bottom: 8px;">+ Add Stop</div>
+                <div class="row">
+                    <span class="label">MAP PHASE</span>
+                    <input type="range" id="gradient-phase-control" min="0" max="1" step="0.01" value="0">
+                </div>
+            </div>
+        </div>
+
+        <div class="control-group divider">
+            <div class="row">
+                <span class="label">BG INTENSITY</span>
+                <input type="range" id="bg-intensity-control" min="0" max="5" step="0.05" value="1.0">
+            </div>
+            <div class="row">
+                <span class="label">GAMMA (CONTRAST)</span>
+                <input type="range" id="gamma-control" min="0.1" max="5" step="0.05" value="1.2">
+            </div>
+            <div class="row">
+                <span class="label">GRID SIZE</span>
+                <input type="range" id="grid-size-control" min="2" max="60" step="0.1" value="8">
+            </div>
+            <div class="row">
+                <span class="label">MOUSE RADIUS</span>
+                <input type="range" id="mouse-radius-control" min="40" max="1000" step="1" value="200">
+            </div>
+            <div class="row">
+                <span class="label">INTERACT SCALE</span>
+                <input type="range" id="interaction-scale-control" min="0.5" max="8.0" step="0.1" value="1.5">
+            </div>
+            <div class="row">
+                <span class="label">FIELD SPREAD</span>
+                <input type="range" id="spread-control" min="0" max="2.0" step="0.01" value="0.4">
+            </div>
+        </div>
+
+        <div class="row divider" style="padding-top: 12px;">
+            <span class="label">LIGHT MODE</span>
+            <input type="checkbox" id="light-mode-toggle">
+        </div>
+    </div>
+
+    <canvas id="main-canvas"></canvas>
+
+    <!-- ── Constants & Configuration ───────────────────────────────────────── -->
+    <script>
+        const PALETTES = {
+            original:   { bg: '#080808', base: '#141412', sprite: '#7a7a76', cursor: '#f0f0ee', stops: ['#080808', '#7a7a76', '#f0f0ee'] },
+            zed:        { bg: '#18181b', base: '#27272a', sprite: '#3b82f6', cursor: '#e2e8f0', stops: ['#18181b', '#3b82f6', '#e2e8f0'] },
+            ghostty:    { bg: '#1a1b26', base: '#24283b', sprite: '#bb9af7', cursor: '#c0caf5', stops: ['#1a1b26', '#bb9af7', '#c0caf5'] },
+            nord:       { bg: '#2e3440', base: '#3b4252', sprite: '#88c0d0', cursor: '#eceff4', stops: ['#2e3440', '#88c0d0', '#eceff4'] },
+            monochrome: { bg: '#000000', base: '#1a1a1a', sprite: '#444444', cursor: '#ffffff', stops: ['#000000', '#444444', '#ffffff'] },
+        };
+
+        const DITHER_SETS = {
+            classic:    ' .:-=+*#%@',
+            characters: ' 10123456789ABCDEF!@#$%&',
+            crt:        '  ▂▃▄▅▆▇█',
+            waffle:     ' ⠁⠃⠇⠏⠟⠿',
+            porthole:   ' ·◦○◎◉●',
+        };
+
+        const WAKE_SET = '·-_=~';
+        const HEX_SET  = '0123456789abcdef-';
+
+        let currentPalette = PALETTES.original;
+
+        const config = {
+            gamma:                1.2,
+            bgIntensity:          1.0,
+            sprite:               'scan',
+            spriteSubtype:        'fluid',
+            spriteSize:           180,
+            cellSize:             8,
+            cellHeightRatio:      1.6,
+            influenceRadius:      200,
+            interactionCharScale: 1.5,
+            spreadFactor:         0.4,
+            lightMode:            false,
+            gradientMap:          false,
+            gradientStops:        [...PALETTES.original.stops],
+            gradientPhase:        0,
+            dither:               'classic',
+        };
+    </script>
+
+    <!-- ── Engine: Cell, utilities, render loop ──────────────────────────── -->
+    <script>
+        const canvas = document.getElementById('main-canvas');
+        const ctx    = canvas.getContext('2d', { alpha: false });
+
+        let cols, rows;
+        let grid             = [];
+        let mouse            = { x: -2000, y: -2000 };
+        let lastTime         = 0;
+        let imageBuffer      = null;
+        let imageAspectRatio = 1.0;
+        let activeUUIDGroups = [];
+
+        // ── Math helpers ────────────────────────────────────────────────────
+
+        const easeOutExpo = t => t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+
+        const smoothStep = (e0, e1, x) => {
+            const t = Math.max(0, Math.min(1, (x - e0) / (e1 - e0)));
+            return t * t * (3 - 2 * t);
+        };
+
+        function lerpColor(a, b, n) {
+            const ah = parseInt(a.replace('#', ''), 16);
+            const bh = parseInt(b.replace('#', ''), 16);
+            const ar = ah >> 16,       ag = (ah >> 8) & 255, ab = ah & 255;
+            const br = bh >> 16,       bg = (bh >> 8) & 255, bb = bh & 255;
+            const r  = Math.round(ar + n * (br - ar));
+            const g  = Math.round(ag + n * (bg - ag));
+            const bl = Math.round(ab + n * (bb - ab));
+            return '#' + (0x1000000 + r * 0x10000 + g * 0x100 + bl).toString(16).slice(1);
+        }
+
+        // ── Sprite influence field ───────────────────────────────────────────
+
+        function getSpriteInfluence(x, y, now) {
+            if (config.sprite === 'none') return 0;
+
+            if (config.sprite === 'scan') {
+                const pos  = (now / 3500) % 1.6 - 0.3;
+                const dist = Math.abs((y / canvas.height) - pos);
+                const size = config.spriteSize / canvas.height;
+                return dist < size ? Math.pow(1 - dist / size, 2) : 0;
+            }
+
+            if (config.sprite === 'pulse') {
+                const radius = (now / 10) % (Math.max(canvas.width, canvas.height) * 1.3);
+                const dx     = x - canvas.width / 2;
+                const dy     = y - canvas.height / 2;
+                const dist   = Math.abs(Math.sqrt(dx * dx + dy * dy) - radius);
+                return dist < config.spriteSize ? Math.pow(1 - dist / config.spriteSize, 2) : 0;
+            }
+
+            if (config.sprite === 'wave') {
+                const nx = x * 0.002, ny = y * 0.002, t = now * 0.0008;
+                let val = 0;
+
+                if (config.spriteSubtype === 'fluid') {
+                    val = Math.sin(nx + t) * Math.cos(ny + t * 0.5) + Math.sin(nx * 0.5 - t) * 0.5;
+                } else if (config.spriteSubtype === 'chaos') {
+                    val = Math.sin(nx * 4 + t) * 0.3 + Math.sin(ny * 5 - t * 1.5) * 0.3 + Math.sin((nx + ny) * 2 + t) * 0.4;
+                } else {
+                    const dx = x - canvas.width / 2, dy = y - canvas.height / 2;
+                    const d  = Math.sqrt(dx * dx + dy * dy) * 0.01;
+                    val = Math.sin(d - t * 5) * Math.cos(nx * 2 + t);
+                }
+
+                const threshold = config.spriteSize / 500;
+                const d = Math.abs(val);
+                return d < threshold ? (1 - d / threshold) : 0;
+            }
+
+            return 0;
+        }
+
+        // ── UUID crystallization ─────────────────────────────────────────────
+
+        function crystallizeUUID(cell, now) {
+            if (cell.state !== 'crystallizing') return;
+
+            const uuid  = crypto.randomUUID();
+            const group = { cells: [], startTime: now };
+
+            for (let i = 0; i < uuid.length; i++) {
+                const target = grid[cell.row * cols + (cell.col + i) % cols];
+                if (!target) continue;
+                target.state     = 'resolved';
+                target.startTime = now;
+                target.uuidChar  = uuid[i];
+                group.cells.push(target);
+            }
+
+            activeUUIDGroups.push(group);
+
+            // FIFO cap: keep at most 4 visible groups
+            if (activeUUIDGroups.length > 4) {
+                const oldest = activeUUIDGroups.shift();
+                oldest.cells.forEach(c => {
+                    if (c.state === 'resolved') { c.state = 'fading'; c.startTime = now; }
+                });
+            }
+        }
+
+        // ── Cell class ───────────────────────────────────────────────────────
+
+        class Cell {
+            constructor(col, row, cw, ch) {
+                this.col  = col;  this.row = row;
+                this.cw   = cw;   this.ch  = ch;
+                this.x    = col * cw;
+                this.y    = row * ch;
+                this.baseDensity  = 0;
+                this.baseChar     = ' ';
+                this.displayChar  = ' ';
+                this.state        = 'idle'; // idle | waking | encoding | crystallizing | resolved | fading
+                this.startTime    = 0;
+                this.delay        = 0;
+                this.lastVisited  = 0;
+                this.mutationTimer = 0;
+                this.color        = currentPalette.base;
+                this.uuidChar     = '';
+                this.currentScale = 1.0;
+                this.dx = 0; this.dy = 0;
+            }
+
+            trigger(now, dist) {
+                if (this.state !== 'idle') return;
+                this.state     = 'waking';
+                this.startTime = now;
+                this.delay     = (dist / config.influenceRadius) * 180;
+                this.lastVisited = now;
+            }
+
+            update(now) {
+                const box = canvas.getBoundingClientRect();
+                const mx  = mouse.x - box.left;
+                const my  = mouse.y - box.top;
+
+                this.dx = (this.x + this.cw / 2) - mx;
+                this.dy = (this.y + this.ch / 2) - my;
+                const dist = Math.sqrt(this.dx * this.dx + this.dy * this.dy);
+
+                if (dist < config.influenceRadius) this.trigger(now, dist);
+
+                const elapsed = now - this.startTime - this.delay;
+
+                if (this.state === 'waking' && elapsed >= 0) {
+                    this.displayChar  = WAKE_SET[Math.floor(Math.random() * WAKE_SET.length)];
+                    this.currentScale = 1.0 + (config.interactionCharScale - 1.0) * (elapsed / 200);
+                    this.color        = lerpColor(this.getIdleColor(), this.getActiveSpriteColor(), Math.min(1, elapsed / 200));
+                    if (elapsed >= 200) this.state = 'encoding';
+
+                } else if (this.state === 'encoding') {
+                    if (now - this.mutationTimer > 40) {
+                        this.displayChar   = HEX_SET[Math.floor(Math.random() * HEX_SET.length)];
+                        this.mutationTimer = now;
+                    }
+                    this.currentScale = config.interactionCharScale;
+                    this.color        = this.getActiveSpriteColor();
+                    if (elapsed >= 600) { this.state = 'crystallizing'; crystallizeUUID(this, now); }
+
+                } else if (this.state === 'resolved') {
+                    this.displayChar  = this.uuidChar;
+                    this.color        = this.getActiveCursorColor();
+                    this.currentScale = config.interactionCharScale;
+                    if (now - this.startTime > 800) { this.state = 'fading'; this.startTime = now; }
+
+                } else if (this.state === 'fading') {
+                    const t = (now - this.startTime) / 400;
+                    this.color        = lerpColor(this.getActiveCursorColor(), this.getIdleColor(), Math.min(1, t));
+                    this.currentScale = 1.0 + (config.interactionCharScale - 1.0) * (1.0 - Math.min(1, t));
+                    if (t >= 1) { this.state = 'idle'; this.displayChar = this.baseChar; this.currentScale = 1.0; }
+                }
+
+                if (this.state === 'idle') {
+                    const timeSinceVisit = now - this.lastVisited;
+                    const sVal = getSpriteInfluence(this.x, this.y, now);
+
+                    if (timeSinceVisit < 600) {
+                        this.color       = lerpColor(this.getActiveCursorColor(), this.getIdleColor(), easeOutExpo(timeSinceVisit / 600));
+                        this.displayChar = this.baseChar;
+                    } else if (sVal > 0.01) {
+                        const s          = smoothStep(0, 1, sVal);
+                        this.color       = lerpColor(this.getIdleColor(), this.getActiveSpriteColor(), s);
+                        const intensity  = this.getFinalIntensity(s);
+                        this.displayChar = DITHER_SETS[config.dither][Math.floor(intensity * DITHER_SETS[config.dither].length)];
+                    } else {
+                        this.color       = this.getIdleColor();
+                        this.displayChar = this.baseChar;
+                    }
+                }
+            }
+
+            getFinalIntensity(additive = 0) {
+                const l = Math.pow(this.baseDensity, 1 / Math.max(0.1, config.gamma)) * config.bgIntensity;
+                return Math.max(0, Math.min(0.99, l + additive));
+            }
+
+            getIdleColor() {
+                const luminance = this.getFinalIntensity(0);
+                if (config.gradientMap && config.gradientStops.length > 1) {
+                    const stops  = config.gradientStops;
+                    const phased = (luminance + config.gradientPhase) % 1.00001;
+                    const i      = Math.floor(phased * (stops.length - 1));
+                    const t      = (phased * (stops.length - 1)) % 1;
+                    return lerpColor(stops[i], stops[Math.min(i + 1, stops.length - 1)], t);
+                }
+                const cBG  = config.lightMode ? currentPalette.cursor : currentPalette.bg;
+                const cACC = config.lightMode ? currentPalette.bg     : currentPalette.cursor;
+                return lerpColor(cBG, cACC, luminance * 0.4);
+            }
+
+            getActiveSpriteColor() {
+                if (config.gradientMap)
+                    return config.gradientStops[Math.floor(config.gradientStops.length * 0.5)] || currentPalette.sprite;
+                return config.lightMode ? lerpColor(currentPalette.sprite, '#000000', 0.2) : currentPalette.sprite;
+            }
+
+            getActiveCursorColor() {
+                if (config.gradientMap)
+                    return config.gradientStops[config.gradientStops.length - 1] || currentPalette.cursor;
+                return config.lightMode ? currentPalette.bg : currentPalette.cursor;
+            }
+
+            draw(pass) {
+                const isInteraction = this.state !== 'idle';
+                if (pass === 'base'        &&  isInteraction) return;
+                if (pass === 'interaction' && !isInteraction) return;
+
+                const baseFS  = Math.floor(this.ch * 0.9);
+                const spreadX = isInteraction ? this.dx * (this.currentScale - 1.0) * config.spreadFactor : 0;
+                const spreadY = isInteraction ? this.dy * (this.currentScale - 1.0) * config.spreadFactor : 0;
+
+                ctx.save();
+                ctx.fillStyle    = this.color;
+                ctx.translate(this.x + this.cw / 2 + spreadX, this.y + this.ch / 2 + spreadY);
+                ctx.font         = `${this.currentScale > 2.5 ? '400' : '300'} ${Math.floor(baseFS * this.currentScale)}px "Geist Mono"`;
+                ctx.textAlign    = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.displayChar, 0, 0);
+                ctx.restore();
+            }
+        }
+
+        // ── Grid management ──────────────────────────────────────────────────
+
+        function adaptViewport() {
+            const margin    = 0.92;
+            const winW      = window.innerWidth  * margin;
+            const winH      = window.innerHeight * margin;
+            const winAspect = winW / winH;
+            let finalW, finalH;
+            if (imageAspectRatio > winAspect) { finalW = winW; finalH = finalW / imageAspectRatio; }
+            else                              { finalH = winH; finalW = finalH * imageAspectRatio; }
+            canvas.width        = Math.floor(finalW);
+            canvas.height       = Math.floor(finalH);
+            canvas.style.width  = `${canvas.width}px`;
+            canvas.style.height = `${canvas.height}px`;
+        }
+
+        function initGrid() {
+            adaptViewport();
+            const cw = config.cellSize;
+            const ch = Math.round(cw * config.cellHeightRatio);
+            cols = Math.ceil(canvas.width  / cw);
+            rows = Math.ceil(canvas.height / ch);
+            grid = [];
+            for (let r = 0; r < rows; r++)
+                for (let c = 0; c < cols; c++)
+                    grid.push(new Cell(c, r, cw, ch));
+            generateDensity();
+        }
+
+        function generateDensity() {
+            const dset = DITHER_SETS[config.dither];
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    let v;
+                    if (imageBuffer) {
+                        const ix = Math.floor((c / cols) * imageBuffer.width);
+                        const iy = Math.floor((r / rows) * imageBuffer.height);
+                        const p  = (Math.min(iy, imageBuffer.height - 1) * imageBuffer.width + Math.min(ix, imageBuffer.width - 1)) * 4;
+                        v = (imageBuffer.data[p] + imageBuffer.data[p + 1] + imageBuffer.data[p + 2]) / 765;
+                    } else {
+                        v = (Math.sin(c * 0.045) * Math.cos(r * 0.085) + Math.sin(c * 0.1) * 0.5) / 1.5;
+                        v = (v + 1) / 2;
+                    }
+                    const cell      = grid[r * cols + c];
+                    cell.baseDensity = v;
+                    cell.baseChar    = dset[Math.floor(cell.getFinalIntensity(0) * dset.length)];
+                    cell.displayChar = cell.baseChar;
+                }
+            }
+        }
+
+        // ── Render loop ──────────────────────────────────────────────────────
+
+        function loop(now) {
+            const delta = now - lastTime; lastTime = now; // eslint-disable-line no-unused-vars
+            ctx.fillStyle = config.lightMode ? currentPalette.cursor : currentPalette.bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < grid.length; i++) grid[i].update(now);
+            for (let i = 0; i < grid.length; i++) grid[i].draw('base');
+            for (let i = 0; i < grid.length; i++) grid[i].draw('interaction');
+            requestAnimationFrame(loop);
+        }
+    </script>
+
+    <!-- ── UI: event listeners & boot ───────────────────────────────────── -->
+    <script>
+        const fileInput = document.getElementById('file-input');
+
+        function renderGradientStops() {
+            const list = document.getElementById('gradient-stops-list');
+            list.innerHTML = '';
+            config.gradientStops.forEach((color, i) => {
+                const item = document.createElement('div');
+                item.className = 'stop-item';
+                item.innerHTML = `<input type="color" value="${color}" data-index="${i}"><span class="remove-stop" data-index="${i}">×</span>`;
+                list.appendChild(item);
+            });
+            list.querySelectorAll('input[type="color"]').forEach(input => {
+                input.addEventListener('input', e => { config.gradientStops[e.target.dataset.index] = e.target.value; });
+            });
+            list.querySelectorAll('.remove-stop').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    if (config.gradientStops.length > 2) {
+                        config.gradientStops.splice(e.target.dataset.index, 1);
+                        renderGradientStops();
+                    }
+                });
+            });
+        }
+
+        // Global input events
+        window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+        window.addEventListener('resize', initGrid);
+
+        // File import
+        fileInput.addEventListener('change', e => {
+            const f = e.target.files[0];
+            if (!f) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                const img = new Image();
+                img.onload = () => {
+                    imageAspectRatio = img.width / img.height;
+                    const tmp = document.createElement('canvas');
+                    tmp.width = img.width; tmp.height = img.height;
+                    tmp.getContext('2d').drawImage(img, 0, 0);
+                    imageBuffer = tmp.getContext('2d').getImageData(0, 0, img.width, img.height);
+                    initGrid();
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(f);
+        });
+
+        // Palette & dither
+        document.getElementById('palette-select').addEventListener('change', e => {
+            currentPalette = PALETTES[e.target.value];
+            config.gradientStops = [...currentPalette.stops];
+            renderGradientStops();
+        });
+        document.getElementById('dither-select').addEventListener('change', e => {
+            config.dither = e.target.value; generateDensity();
+        });
+
+        // Numeric controls
+        document.getElementById('bg-intensity-control').addEventListener('input',     e => { config.bgIntensity          = parseFloat(e.target.value); generateDensity(); });
+        document.getElementById('gamma-control').addEventListener('input',            e => { config.gamma                = parseFloat(e.target.value); generateDensity(); });
+        document.getElementById('grid-size-control').addEventListener('input',        e => { config.cellSize             = parseFloat(e.target.value); initGrid(); });
+        document.getElementById('mouse-radius-control').addEventListener('input',     e => { config.influenceRadius      = parseInt(e.target.value); });
+        document.getElementById('interaction-scale-control').addEventListener('input',e => { config.interactionCharScale = parseFloat(e.target.value); });
+        document.getElementById('spread-control').addEventListener('input',           e => { config.spreadFactor         = parseFloat(e.target.value); });
+        document.getElementById('gradient-phase-control').addEventListener('input',   e => { config.gradientPhase        = parseFloat(e.target.value); });
+
+        // Gradient toggle
+        document.getElementById('gradient-toggle').addEventListener('change', e => {
+            config.gradientMap = e.target.checked;
+            document.getElementById('gradient-controls').style.display = config.gradientMap ? 'block' : 'none';
+        });
+        document.getElementById('add-stop-btn').addEventListener('click', () => {
+            config.gradientStops.push('#ffffff'); renderGradientStops();
+        });
+
+        // Sprite preset & wave type
+        document.getElementById('sprite-preset').addEventListener('change', e => {
+            config.sprite = e.target.value;
+            document.getElementById('wave-type-row').style.display = config.sprite === 'wave' ? 'flex' : 'none';
+        });
+        document.getElementById('wave-type-select').addEventListener('change', e => {
+            config.spriteSubtype = e.target.value;
+        });
+
+        // Light mode
+        document.getElementById('light-mode-toggle').addEventListener('change', e => {
+            config.lightMode = e.target.checked;
+            document.body.classList.toggle('light-mode', config.lightMode);
+        });
+
+        // Boot
+        renderGradientStops();
+        initGrid();
+        requestAnimationFrame(loop);
+    </script>
+</body>
+</html>
