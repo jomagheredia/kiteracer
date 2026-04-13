@@ -87,8 +87,53 @@
                             <optgroup label="Zed"><option value="zed">Atmosphere</option><option value="zedRose">Rosé Pine</option><option value="zedAndromeda">Andromeda</option></optgroup>
                             <optgroup label="Cursor"><option value="cursorDark">Midnight</option><option value="cursorEmber">Ember</option></optgroup>
                         </select></div>
-                    <div class="ctrl-row"><label class="ctrl-label" for="dither-select">Dither</label>
-                        <select id="dither-select"><option value="classic">Classic ASCII</option><option value="characters">Characters</option><option value="crt">CRT Phosphor</option><option value="waffle">Waffle</option><option value="porthole">Porthole</option></select></div>
+                </div>
+                <div class="panel-sec">
+                    <div class="ctrl-row"><label class="sec-label" for="glyph-dither-toggle">Glyph Dither</label><input type="checkbox" id="glyph-dither-toggle" checked></div>
+                    <div id="glyph-dither-controls" style="display:flex;flex-direction:column;gap:9px;">
+                        <div class="ctrl-row"><label class="ctrl-label" for="dither-select">Set</label>
+                            <select id="dither-select">
+                                <option value="characters">Characters</option>
+                                <option value="classic">Classic</option>
+                                <option value="unicode">Unicode</option>
+                                <option value="redacted">Redacted</option>
+                                <option value="squares">Squares</option>
+                                <option value="circles">Circles</option>
+                                <option value="crt">CRT</option>
+                                <option value="organic">Organic</option>
+                                <option value="stars">Stars</option>
+                                <option value="verticalLines">Vertical Lines</option>
+                                <option value="horizontalLines">Horizontal Lines</option>
+                                <option value="verticalJitter">Vertical Jitter</option>
+                                <option value="horizontalJitter">Horizontal Jitter</option>
+                                <option value="waffle">Waffle</option>
+                                <option value="porthole">Porthole</option>
+                                <option value="zigzag">Zigzag</option>
+                                <option value="eyes">Eyes</option>
+                                <option value="blueNoiseish">Blue Noiseish</option>
+                                <option value="diagonals">Diagonals</option>
+                            </select></div>
+                    </div>
+                </div>
+                <div class="panel-sec">
+                    <div class="ctrl-row"><label class="sec-label" for="dither-toggle">Dither</label><input type="checkbox" id="dither-toggle" checked></div>
+                    <div id="dither-controls" style="display:flex;flex-direction:column;gap:9px;">
+                        <div class="ctrl-row"><label class="ctrl-label" for="dither-mode-select">Mode</label>
+                            <select id="dither-mode-select">
+                                <option value="blueNoise" selected>Blue Noise</option>
+                                <option value="blueNoise2x">Blue Noise 2x</option>
+                                <option value="blueNoise05x">Blue Noise 0.5x</option>
+                                <option value="bayer4">Bayer 4x4</option>
+                                <option value="bayer8">Bayer 8x8</option>
+                                <option value="bayer16">Bayer 16x16</option>
+                                <option value="random">Random</option>
+                                <option value="ign">IGN</option>
+                                <option value="halftone">Halftone</option>
+                                <option value="crosshatch">Crosshatch</option>
+                                <option value="checkerboard">Checkerboard</option>
+                            </select></div>
+                        <div class="ctrl-row"><label class="ctrl-label" for="dither-strength-control">Strength</label><input type="range" id="dither-strength-control" min="0" max="2.0" step="0.1" value="1.0"><span class="ctrl-val" id="dither-strength-val">1.0</span></div>
+                    </div>
                 </div>
                 <div class="panel-sec">
                     <div class="ctrl-row"><label class="sec-label" for="gradient-toggle">Gradient Map</label><input type="checkbox" id="gradient-toggle"></div>
@@ -152,7 +197,27 @@
                 cursorEmber:      { bg:"#1c1917", base:"#292524", sprite:"#d97706", cursor:"#fef3c7", stops:["#1c1917","#d97706","#fef3c7"] },
             };
 
-            const DITHER_SETS = { classic:" .:-=+*#%@", characters:" 10123456789ABCDEF!@#$%&", crt:"  ▂▃▄▅▆▇█", waffle:" ⠁⠃⠇⠏⠟⠿", porthole:" ·◦○◎◉●" };
+            const DITHER_SETS = {
+                characters:      " 0123456789ABCDEF!@#$%&",
+                classic:         " .:-=+*#%@",
+                unicode:         " ·∘∙○●◉■█",
+                redacted:        " ░▒▓█",
+                squares:         " ▫▪□■◼",
+                circles:         " ◌○◎●⬤",
+                crt:             " ▂▃▄▅▆▇█",
+                organic:         " .,;~∞❀✿",
+                stars:           " ·✧✦★✶✹",
+                verticalLines:   " ╎│╏┃║",
+                horizontalLines: " ╌─╍━═",
+                verticalJitter:  " ¡|ǁ‖⦀",
+                horizontalJitter:" -–—═≡",
+                waffle:          " ⠁⠃⠇⠏⠟⠿",
+                porthole:        " ·◦○◎◉●",
+                zigzag:          " ~∽≈⋰╳",
+                eyes:            " ◌◍◎⊙⦿",
+                blueNoiseish:    " ░▒▞▚▓█",
+                diagonals:       " ╱╲╳▞▚▓",
+            };
             const WAKE_SET = "·-_=~";
             const HEX_SET = "0123456789abcdef-";
             let currentPalette = PALETTES.original;
@@ -162,7 +227,9 @@
                 interactionCharScale:3.0, spreadFactor:0.4, cursorSoftness:2.0, cursorMode:"default",
                 uuidCount:4, seed:0, lightMode:false, gradientMap:false,
                 gradientStops:[...PALETTES.original.stops], gradientPhase:0,
-                dither:"classic", animationSpeed:1.0, cursorLines:10,
+                dither:"characters", glyphDitherEnabled:true,
+                ditherMode:"blueNoise", ditherEnabled:true, ditherStrength:1.0,
+                animationSpeed:1.0, cursorLines:10,
             };
         </script>
 
@@ -265,6 +332,89 @@
             // t(now) converts wall-clock ms to scaled animation time.
             // All state timestamps and thresholds operate in this domain.
             const t = now => now * config.animationSpeed;
+
+            // ── Dither modifier (spatial threshold patterns) ────────────────────
+            // Inspired by Unicorn Studio's dither pipeline:
+            //   quantized = floor(intensity * levels + noise * strength) / levels
+
+            // ── Bayer matrices (procedural hierarchical) ───────────────────────
+            const BAYER = {};
+            (function() {
+                function gen(n) {
+                    if (n === 1) return [[0]];
+                    const h = gen(n >> 1), hn = n >> 1;
+                    const m = Array.from({length: n}, () => new Float32Array(n));
+                    for (let y = 0; y < hn; y++)
+                        for (let x = 0; x < hn; x++) {
+                            const v = h[y][x];
+                            m[y][x] = 4*v; m[y][x+hn] = 4*v+2;
+                            m[y+hn][x] = 4*v+3; m[y+hn][x+hn] = 4*v+1;
+                        }
+                    const n2 = n * n;
+                    for (let y = 0; y < n; y++)
+                        for (let x = 0; x < n; x++)
+                            m[y][x] = (m[y][x] + 0.5) / n2 - 0.5;
+                    return m;
+                }
+                BAYER[4] = gen(4); BAYER[8] = gen(8); BAYER[16] = gen(16);
+            })();
+
+            // ── PCG2D hash (from Unicorn Studio — high-quality integer noise) ──
+            function pcg2d(x, y) {
+                let vx = (x * 1664525 + 1013904223) | 0;
+                let vy = (y * 1664525 + 1013904223) | 0;
+                vx = (vx + Math.imul(vy, vy) * 1664525 + 1013904223) | 0;
+                vy = (vy + Math.imul(vx, vx) * 1664525 + 1013904223) | 0;
+                vx ^= vx >>> 16; vy ^= vy >>> 16;
+                vx = (vx + Math.imul(vy, vy) * 1664525 + 1013904223) | 0;
+                return ((vx ^ vy) >>> 0) / 4294967296;
+            }
+
+            // ── R2 low-discrepancy sequence (blue-noise-like) ──────────────────
+            function r2Noise(x, y) {
+                const a1 = 0.7548776662466927, a2 = 0.5698402909980532;
+                return ((x * a1 + y * a2) % 1) - 0.5;
+            }
+
+            // ── IGN — Interleaved Gradient Noise (Jorge Jimenez) ───────────────
+            function ignNoise(x, y) {
+                return ((52.9829189 * ((0.06711056 * x + 0.00583715 * y) % 1)) % 1) - 0.5;
+            }
+
+            function getDitherOffset(col, row) {
+                if (!config.ditherEnabled) return 0;
+                switch (config.ditherMode) {
+                    case 'blueNoise':     return r2Noise(col, row);
+                    case 'blueNoise2x':   return r2Noise(col * 2, row * 2);
+                    case 'blueNoise05x':  return r2Noise(col * 0.5, row * 0.5);
+                    case 'bayer4':        return BAYER[4][row & 3][col & 3];
+                    case 'bayer8':        return BAYER[8][row & 7][col & 7];
+                    case 'bayer16':       return BAYER[16][row & 15][col & 15];
+                    case 'random':        return pcg2d(col, row) - 0.5;
+                    case 'ign':           return ignNoise(col, row);
+                    case 'halftone': {
+                        const p = 6, cx = (col % p) - p * 0.5, cy = (row % p) - p * 0.5;
+                        return Math.sqrt(cx * cx + cy * cy) / (p * 0.707) - 0.5;
+                    }
+                    case 'crosshatch': {
+                        const a = (col + row) % 4, b = (col - row + 400) % 4;
+                        return ((a === 0 || b === 0) ? -0.35 : 0.35);
+                    }
+                    case 'checkerboard':  return ((col + row) & 1) ? 0.4 : -0.4;
+                    default:              return 0;
+                }
+            }
+
+            // ── Character quantization with dither + glyph toggle ──────────────
+            // Follows Unicorn's pattern: floor(intensity * levels + noise * str)
+            function quantizeChar(intensity, col, row) {
+                if (!config.glyphDitherEnabled) return '█';
+                const dset = DITHER_SETS[config.dither];
+                const n = dset.length;
+                const noise = getDitherOffset(col, row) * config.ditherStrength;
+                const idx = Math.max(0, Math.min(n - 1, Math.floor(intensity * n + noise)));
+                return dset[idx];
+            }
 
             // ── Sprite influence field ───────────────────────────────────────────
 
@@ -545,13 +695,7 @@
                                 s,
                             );
                             const intensity = this.getFinalIntensity(s);
-                            this.displayChar =
-                                DITHER_SETS[config.dither][
-                                    Math.floor(
-                                        intensity *
-                                            DITHER_SETS[config.dither].length,
-                                    )
-                                ];
+                            this.displayChar = quantizeChar(intensity, this.col, this.row);
                         } else {
                             this.color = this.getIdleColor();
                             this.displayChar = this.baseChar;
@@ -674,7 +818,6 @@
             }
 
             function generateDensity() {
-                const dset = DITHER_SETS[config.dither];
                 for (let r = 0; r < rows; r++) {
                     for (let c = 0; c < cols; c++) {
                         let v;
@@ -704,12 +847,7 @@
                         }
                         const cell = grid[r * cols + c];
                         cell.baseDensity = v;
-                        cell.baseChar =
-                            dset[
-                                Math.floor(
-                                    cell.getFinalIntensity(0) * dset.length,
-                                )
-                            ];
+                        cell.baseChar = quantizeChar(cell.getFinalIntensity(0), c, r);
                         cell.displayChar = cell.baseChar;
                     }
                 }
@@ -930,12 +1068,38 @@
                     staticBaseDirty = true;
                     renderGradientStops();
                 });
+            // Glyph Dither toggle + set
+            document
+                .getElementById("glyph-dither-toggle")
+                .addEventListener("change", (e) => {
+                    config.glyphDitherEnabled = e.target.checked;
+                    document.getElementById("glyph-dither-controls").style.display =
+                        config.glyphDitherEnabled ? "flex" : "none";
+                    generateDensity();
+                });
             document
                 .getElementById("dither-select")
                 .addEventListener("change", (e) => {
                     config.dither = e.target.value;
                     generateDensity();
                 });
+
+            // Dither toggle + mode + strength
+            document
+                .getElementById("dither-toggle")
+                .addEventListener("change", (e) => {
+                    config.ditherEnabled = e.target.checked;
+                    document.getElementById("dither-controls").style.display =
+                        config.ditherEnabled ? "flex" : "none";
+                    generateDensity();
+                });
+            document
+                .getElementById("dither-mode-select")
+                .addEventListener("change", (e) => {
+                    config.ditherMode = e.target.value;
+                    generateDensity();
+                });
+            bindSlider("dither-strength-control", "dither-strength-val", "ditherStrength", parseFloat, { after: generateDensity });
 
             // Numeric controls — helper to bind slider → config + value readout
             function bindSlider(id, valId, prop, parse, opts) {
