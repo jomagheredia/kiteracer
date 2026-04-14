@@ -96,8 +96,28 @@
                         </select></div>
                 </div>
                 <div class="panel-sec">
-                    <div class="ctrl-row"><span class="sec-label">Glyph Dither</span><label class="switch"><input type="checkbox" id="glyph-dither-toggle" checked><span class="switch-track"></span><span class="switch-thumb"></span></label></div>
-                    <div id="glyph-dither-controls" style="display:flex;flex-direction:column;gap:9px;">
+                    <div class="ctrl-row"><span class="sec-label">Dither</span><label class="switch"><input type="checkbox" id="dither-toggle"><span class="switch-track"></span><span class="switch-thumb"></span></label></div>
+                    <div id="dither-controls" style="display:none;flex-direction:column;gap:9px;">
+                        <div class="ctrl-row"><label class="ctrl-label" for="dither-mode-select">Mode</label>
+                            <select id="dither-mode-select">
+                                <option value="blueNoise" selected>Blue Noise</option>
+                                <option value="blueNoise2x">Blue Noise 2x</option>
+                                <option value="blueNoise05x">Blue Noise 0.5x</option>
+                                <option value="bayer4">Bayer 4x4</option>
+                                <option value="bayer8">Bayer 8x8</option>
+                                <option value="bayer16">Bayer 16x16</option>
+                                <option value="random">Random</option>
+                                <option value="ign">IGN</option>
+                                <option value="halftone">Halftone</option>
+                                <option value="crosshatch">Crosshatch</option>
+                                <option value="checkerboard">Checkerboard</option>
+                            </select></div>
+                        <div class="ctrl-row"><label class="ctrl-label" for="dither-strength-control">Strength</label><input type="range" id="dither-strength-control" min="0" max="2.0" step="0.1" value="1.0"><span class="ctrl-val" id="dither-strength-val">1.0</span></div>
+                    </div>
+                </div>
+                <div class="panel-sec">
+                    <div class="ctrl-row"><span class="sec-label">Glyph Dither</span><label class="switch"><input type="checkbox" id="glyph-dither-toggle"><span class="switch-track"></span><span class="switch-thumb"></span></label></div>
+                    <div id="glyph-dither-controls" style="display:none;flex-direction:column;gap:9px;">
                         <div class="ctrl-row"><label class="ctrl-label" for="dither-select">Set</label>
                             <select id="dither-select">
                                 <option value="characters">Characters</option>
@@ -120,26 +140,6 @@
                                 <option value="blueNoiseish">Blue Noiseish</option>
                                 <option value="diagonals">Diagonals</option>
                             </select></div>
-                    </div>
-                </div>
-                <div class="panel-sec">
-                    <div class="ctrl-row"><span class="sec-label">Dither</span><label class="switch"><input type="checkbox" id="dither-toggle"><span class="switch-track"></span><span class="switch-thumb"></span></label></div>
-                    <div id="dither-controls" style="display:none;flex-direction:column;gap:9px;">
-                        <div class="ctrl-row"><label class="ctrl-label" for="dither-mode-select">Mode</label>
-                            <select id="dither-mode-select">
-                                <option value="blueNoise" selected>Blue Noise</option>
-                                <option value="blueNoise2x">Blue Noise 2x</option>
-                                <option value="blueNoise05x">Blue Noise 0.5x</option>
-                                <option value="bayer4">Bayer 4x4</option>
-                                <option value="bayer8">Bayer 8x8</option>
-                                <option value="bayer16">Bayer 16x16</option>
-                                <option value="random">Random</option>
-                                <option value="ign">IGN</option>
-                                <option value="halftone">Halftone</option>
-                                <option value="crosshatch">Crosshatch</option>
-                                <option value="checkerboard">Checkerboard</option>
-                            </select></div>
-                        <div class="ctrl-row"><label class="ctrl-label" for="dither-strength-control">Strength</label><input type="range" id="dither-strength-control" min="0" max="2.0" step="0.1" value="1.0"><span class="ctrl-val" id="dither-strength-val">1.0</span></div>
                     </div>
                 </div>
                 <div class="panel-sec">
@@ -173,6 +173,13 @@
                     <div class="ctrl-row"><label class="ctrl-label" for="cursor-activation-curve-select">Activation</label>
                         <select id="cursor-activation-curve-select"><option value="linear" selected>Linear</option><option value="quadratic">Quadratic</option><option value="cubic">Cubic</option><option value="step2">Step 2</option><option value="step3">Step 3</option></select></div>
                     <div class="ctrl-row"><label class="ctrl-label" for="cursor-line-phase-control">Line Phase</label><input type="range" id="cursor-line-phase-control" min="0" max="1.0" step="0.05" value="0"><span class="ctrl-val" id="cursor-line-phase-val">0</span></div>
+                </div>
+                <div class="panel-sec">
+                    <div class="ctrl-row"><span class="sec-label">Pin Cursor</span><label class="switch"><input type="checkbox" id="cursor-pin-toggle"><span class="switch-track"></span><span class="switch-thumb"></span></label></div>
+                    <div id="cursor-pin-controls" style="display:none;flex-direction:column;gap:9px;">
+                        <div class="ctrl-row"><label class="ctrl-label" for="cursor-pin-x-control">X</label><input type="range" id="cursor-pin-x-control" min="0" max="800" step="1" value="0"><span class="ctrl-val" id="cursor-pin-x-val">0</span></div>
+                        <div class="ctrl-row"><label class="ctrl-label" for="cursor-pin-y-control">Y</label><input type="range" id="cursor-pin-y-control" min="0" max="600" step="1" value="0"><span class="ctrl-val" id="cursor-pin-y-val">0</span></div>
+                    </div>
                 </div>
                 <div class="panel-sec">
                     <span class="sec-label">Cursor</span>
@@ -256,7 +263,7 @@
                 interactionCharScale:3.0, spreadFactor:0.4, cursorSoftness:2.0, cursorMode:"default",
                 uuidCount:4, seed:0, lightMode:false, gradientMap:false,
                 gradientStops:[...PALETTES.original.stops], gradientPhase:0,
-                dither:"classic", glyphDitherEnabled:true,
+                dither:"classic", glyphDitherEnabled:false,
                 ditherMode:"blueNoise", ditherEnabled:false, ditherStrength:1.0,
                 animationSpeed:1.0, cursorLines:10,
                 // Shape
@@ -272,6 +279,8 @@
                 cursorSpiralTightness:2.0, shockwaveActive:false,
                 // Activation
                 cursorActivationCurve:"linear", cursorLinePhase:0,
+                // Pin
+                cursorPinned:false, cursorPinX:0, cursorPinY:0,
             };
         </script>
 
@@ -288,7 +297,7 @@
             let activeUUIDGroups = [];
 
             // ── Performance: frame state & render buffers ───────────────────────
-            const frame = { mx: 0, my: 0, tn: 0, lastAnimSpeed: 1.0 };
+            const frame = { mx: 0, my: 0, cx: 0, cy: 0, tn: 0, lastAnimSpeed: 1.0 };
             let staticBase = null, staticBaseCtx = null;
             let staticBaseDirty = true;
             const _iBuf = []; let _iCount = 0;   // interaction cells
@@ -747,7 +756,7 @@
                     if (config.cursorLines < 20) {
                         const radiusRows = Math.max(1, Math.ceil(effR / this.ch));
                         const stride = Math.max(1, Math.ceil(radiusRows / config.cursorLines));
-                        const cursorRow = Math.round(frame.my / this.ch);
+                        const cursorRow = Math.round(frame.cy / this.ch);
                         const phaseOffset = Math.round(config.cursorLinePhase * stride);
                         if ((Math.abs(this.row - cursorRow) + phaseOffset) % stride !== 0) return;
                     }
@@ -779,8 +788,8 @@
 
                 update(now) {
                     const tn = t(now); // scaled animation time
-                    this.dx = this.x + this.cw * 0.5 - frame.mx;
-                    this.dy = this.y + this.ch * 0.5 - frame.my;
+                    this.dx = this.x + this.cw * 0.5 - frame.cx;
+                    this.dy = this.y + this.ch * 0.5 - frame.cy;
 
                     // ── Effective distance (accounts for ellipse + rotation + noise warp) ──
                     let edx = this.dx, edy = this.dy;
@@ -1008,6 +1017,10 @@
                         grid.push(new Cell(c, r, cw, ch));
                 generateDensity();
                 initStaticBase();
+                const pinX = document.getElementById('cursor-pin-x-control');
+                const pinY = document.getElementById('cursor-pin-y-control');
+                if (pinX) { pinX.max = canvas.width; }
+                if (pinY) { pinY.max = canvas.height; }
             }
 
             function generateDensity() {
@@ -1061,10 +1074,22 @@
                 const box = canvas.getBoundingClientRect();
                 frame.mx = mouse.x - box.left;
                 frame.my = mouse.y - box.top;
+                frame.cx = config.cursorPinned ? config.cursorPinX : frame.mx;
+                frame.cy = config.cursorPinned ? config.cursorPinY : frame.my;
+                if (config.cursorPinned) {
+                    const adx = frame.mx - config.cursorPinX;
+                    const ady = frame.my - config.cursorPinY;
+                    config.cursorRotation = Math.atan2(ady, adx) * 180 / Math.PI;
+                }
 
-                // ── Rescale stored timestamps when animationSpeed changes ──
-                if (config.animationSpeed !== frame.lastAnimSpeed) {
-                    const delta = now * (config.animationSpeed - frame.lastAnimSpeed);
+                // ── Smooth animation speed transitions ──
+                if (frame.lastAnimSpeed !== config.animationSpeed) {
+                    const diff = config.animationSpeed - frame.lastAnimSpeed;
+                    const step = diff * 0.06;
+                    const next = (Math.abs(diff) < 0.005)
+                        ? config.animationSpeed
+                        : frame.lastAnimSpeed + step;
+                    const delta = now * (next - frame.lastAnimSpeed);
                     for (let i = 0; i < grid.length; i++) {
                         const c = grid[i];
                         c.startTime    += delta;
@@ -1074,7 +1099,7 @@
                     for (let i = 0; i < activeUUIDGroups.length; i++) {
                         activeUUIDGroups[i].startTime += delta;
                     }
-                    frame.lastAnimSpeed = config.animationSpeed;
+                    frame.lastAnimSpeed = next;
                 }
 
                 frame.tn = t(now);
@@ -1115,7 +1140,7 @@
                 // ── Echo buffer (update every 80ms) ──
                 if (config.cursorEchoCount > 0) {
                     if (frame.tn - echoTimer > 80) {
-                        echoPositions.unshift({ x: frame.mx, y: frame.my });
+                        echoPositions.unshift({ x: frame.cx, y: frame.cy });
                         while (echoPositions.length > config.cursorEchoCount)
                             echoPositions.pop();
                         echoTimer = frame.tn;
@@ -1143,8 +1168,8 @@
                 for (let i = 0; i < grid.length; i++) {
                     const cell = grid[i];
                     if (cell.state === 'idle') {
-                        const dx = cell.x + cell.cw * 0.5 - frame.mx;
-                        const dy = cell.y + cell.ch * 0.5 - frame.my;
+                        const dx = cell.x + cell.cw * 0.5 - frame.cx;
+                        const dy = cell.y + cell.ch * 0.5 - frame.cy;
                         if (dx * dx + dy * dy >= rSq
                             && !cellInZone(cell, spriteZone)
                             && frame.tn - cell.lastVisited >= 600) continue;
@@ -1412,12 +1437,47 @@
             bindSlider("cursor-noise-warp-control", "cursor-noise-warp-val", "cursorNoiseWarp", parseFloat);
             bindSlider("cursor-vortex-strength-control", "cursor-vortex-strength-val", "cursorVortexStrength", parseFloat);
 
+            // ── Pin Cursor controls ──
+            let _savedRotation = 0;
+            document.getElementById('cursor-pin-toggle').addEventListener('change', (e) => {
+                config.cursorPinned = e.target.checked;
+                document.getElementById('cursor-pin-controls').style.display =
+                    config.cursorPinned ? 'flex' : 'none';
+                if (config.cursorPinned) {
+                    _savedRotation = config.cursorRotation;
+                    config.cursorPinX = canvas.width / 2;
+                    config.cursorPinY = canvas.height / 2;
+                    const xEl = document.getElementById('cursor-pin-x-control');
+                    const yEl = document.getElementById('cursor-pin-y-control');
+                    xEl.max = canvas.width; yEl.max = canvas.height;
+                    xEl.value = Math.round(config.cursorPinX);
+                    yEl.value = Math.round(config.cursorPinY);
+                    document.getElementById('cursor-pin-x-val').textContent = Math.round(config.cursorPinX);
+                    document.getElementById('cursor-pin-y-val').textContent = Math.round(config.cursorPinY);
+                } else {
+                    config.cursorRotation = _savedRotation;
+                }
+            });
+            bindSlider('cursor-pin-x-control', 'cursor-pin-x-val', 'cursorPinX', parseInt);
+            bindSlider('cursor-pin-y-control', 'cursor-pin-y-val', 'cursorPinY', parseInt);
+
             // ── Shockwave click listener ──
             canvas.addEventListener("mousedown", () => {
+                const box = canvas.getBoundingClientRect();
+                const cx = mouse.x - box.left;
+                const cy = mouse.y - box.top;
+                if (config.cursorPinned) {
+                    config.cursorPinX = cx;
+                    config.cursorPinY = cy;
+                    document.getElementById('cursor-pin-x-control').value = Math.round(cx);
+                    document.getElementById('cursor-pin-x-val').textContent = Math.round(cx);
+                    document.getElementById('cursor-pin-y-control').value = Math.round(cy);
+                    document.getElementById('cursor-pin-y-val').textContent = Math.round(cy);
+                    return;
+                }
                 if (config.cursorMode === 'shockwave') {
-                    const box = canvas.getBoundingClientRect();
-                    shockwaveOrigin.x = mouse.x - box.left;
-                    shockwaveOrigin.y = mouse.y - box.top;
+                    shockwaveOrigin.x = cx;
+                    shockwaveOrigin.y = cy;
                     shockwaveTime = frame.tn;
                     config.shockwaveActive = true;
                 }
