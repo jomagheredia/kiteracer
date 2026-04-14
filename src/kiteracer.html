@@ -257,6 +257,14 @@
             const WAKE_SET = "·-_=~";
             const HEX_SET = "0123456789abcdef-";
             let currentPalette = PALETTES.original;
+            let paletteRgb = {};
+            function updatePaletteRgb() {
+                paletteRgb.bg     = hexToRgb(currentPalette.bg);
+                paletteRgb.base   = hexToRgb(currentPalette.base);
+                paletteRgb.sprite = hexToRgb(currentPalette.sprite);
+                paletteRgb.cursor = hexToRgb(currentPalette.cursor);
+                paletteRgb.black  = [0, 0, 0];
+            }
             const config = {
                 gamma:1.2, bgIntensity:1.0, sprite:"none", spriteSubtype:"fluid", spriteSize:180,
                 cellSize:4, cellHeightRatio:1.6, influenceRadius:200, cursorInfluence:1.0,
@@ -463,24 +471,20 @@
                 return u;
             }
 
+            function hexToRgb(hex) {
+                const h = parseInt(hex.replace("#", ""), 16);
+                return [h >> 16, (h >> 8) & 255, h & 255];
+            }
+
+            function lerpRgb(a, b, n) {
+                const r = Math.round(a[0] + n * (b[0] - a[0]));
+                const g = Math.round(a[1] + n * (b[1] - a[1]));
+                const bl = Math.round(a[2] + n * (b[2] - a[2]));
+                return "#" + (0x1000000 + r * 0x10000 + g * 0x100 + bl).toString(16).slice(1);
+            }
+
             function lerpColor(a, b, n) {
-                const ah = parseInt(a.replace("#", ""), 16);
-                const bh = parseInt(b.replace("#", ""), 16);
-                const ar = ah >> 16,
-                    ag = (ah >> 8) & 255,
-                    ab = ah & 255;
-                const br = bh >> 16,
-                    bg = (bh >> 8) & 255,
-                    bb = bh & 255;
-                const r = Math.round(ar + n * (br - ar));
-                const g = Math.round(ag + n * (bg - ag));
-                const bl = Math.round(ab + n * (bb - ab));
-                return (
-                    "#" +
-                    (0x1000000 + r * 0x10000 + g * 0x100 + bl)
-                        .toString(16)
-                        .slice(1)
-                );
+                return lerpRgb(hexToRgb(a), hexToRgb(b), n);
             }
 
             // ── Animation speed scaler ──────────────────────────────────────────
@@ -823,9 +827,9 @@
                             (config.interactionCharScale - 1.0) *
                                 this.triggerStrength *
                                 (elapsed / 200);
-                        this.color = lerpColor(
-                            this.getIdleColor(),
-                            this.getActiveSpriteColor(),
+                        this.color = lerpRgb(
+                            this.getIdleRgb(),
+                            this.getActiveSpriteRgb(),
                             Math.min(1, elapsed / 200) * this.triggerStrength,
                         );
                         if (elapsed >= 200) this.state = "encoding";
@@ -838,14 +842,14 @@
                             this.mutationTimer = tn;
                         }
                         this.currentScale = 1.0 + (config.interactionCharScale - 1.0) * this.triggerStrength;
-                        this.color = lerpColor(this.getIdleColor(), this.getActiveSpriteColor(), this.triggerStrength);
+                        this.color = lerpRgb(this.getIdleRgb(), this.getActiveSpriteRgb(), this.triggerStrength);
                         if (elapsed >= 600) {
                             this.state = "crystallizing";
                             crystallizeUUID(this, tn);
                         }
                     } else if (this.state === "resolved") {
                         this.displayChar = this.uuidChar;
-                        this.color = lerpColor(this.getIdleColor(), this.getActiveCursorColor(), this.triggerStrength);
+                        this.color = lerpRgb(this.getIdleRgb(), this.getActiveCursorRgb(), this.triggerStrength);
                         this.currentScale = 1.0 + (config.interactionCharScale - 1.0) * this.triggerStrength;
                         if (tn - this.startTime > 800) {
                             this.state = "fading";
@@ -853,11 +857,15 @@
                         }
                     } else if (this.state === "fading") {
                         const fadeProg = (tn - this.startTime) / 400;
-                        this.color = lerpColor(
-                            lerpColor(this.getIdleColor(), this.getActiveCursorColor(), this.triggerStrength),
-                            this.getIdleColor(),
-                            Math.min(1, fadeProg),
-                        );
+                        const idleRgb   = this.getIdleRgb();
+                        const cursorRgb = this.getActiveCursorRgb();
+                        const ts = this.triggerStrength;
+                        const innerRgb = [
+                            Math.round(idleRgb[0] + ts * (cursorRgb[0] - idleRgb[0])),
+                            Math.round(idleRgb[1] + ts * (cursorRgb[1] - idleRgb[1])),
+                            Math.round(idleRgb[2] + ts * (cursorRgb[2] - idleRgb[2])),
+                        ];
+                        this.color = lerpRgb(innerRgb, idleRgb, Math.min(1, fadeProg));
                         this.currentScale =
                             1.0 +
                             (config.interactionCharScale - 1.0) *
@@ -883,17 +891,17 @@
                                 case 'sine':        trailProgress = 0.5 - 0.5 * Math.cos(Math.PI * raw); break;
                                 default:            trailProgress = raw; // linear
                             }
-                            this.color = lerpColor(
-                                this.getActiveCursorColor(),
-                                this.getIdleColor(),
+                            this.color = lerpRgb(
+                                this.getActiveCursorRgb(),
+                                this.getIdleRgb(),
                                 trailProgress,
                             );
                             this.displayChar = this.baseChar;
                         } else if (sVal > 0.01) {
                             const s = smoothStep(0, 1, sVal);
-                            this.color = lerpColor(
-                                this.getIdleColor(),
-                                this.getActiveSpriteColor(),
+                            this.color = lerpRgb(
+                                this.getIdleRgb(),
+                                this.getActiveSpriteRgb(),
                                 s,
                             );
                             const intensity = this.getFinalIntensity(s);
@@ -914,7 +922,7 @@
                     return Math.max(0, Math.min(0.99, l + additive));
                 }
 
-                getIdleColor() {
+                getIdleRgb() {
                     const luminance = this.getFinalIntensity(0);
                     if (config.gradientMap && config.gradientStops.length > 1) {
                         const stops = config.gradientStops;
@@ -922,19 +930,44 @@
                             (luminance + config.gradientPhase) % 1.00001;
                         const i = Math.floor(phased * (stops.length - 1));
                         const frac = (phased * (stops.length - 1)) % 1;
-                        return lerpColor(
-                            stops[i],
-                            stops[Math.min(i + 1, stops.length - 1)],
-                            frac,
+                        const a = hexToRgb(stops[i]);
+                        const b = hexToRgb(stops[Math.min(i + 1, stops.length - 1)]);
+                        return [
+                            Math.round(a[0] + frac * (b[0] - a[0])),
+                            Math.round(a[1] + frac * (b[1] - a[1])),
+                            Math.round(a[2] + frac * (b[2] - a[2])),
+                        ];
+                    }
+                    const cBG  = config.lightMode ? paletteRgb.cursor : paletteRgb.bg;
+                    const cACC = config.lightMode ? paletteRgb.bg     : paletteRgb.cursor;
+                    const l = luminance * 0.4;
+                    return [
+                        Math.round(cBG[0] + l * (cACC[0] - cBG[0])),
+                        Math.round(cBG[1] + l * (cACC[1] - cBG[1])),
+                        Math.round(cBG[2] + l * (cACC[2] - cBG[2])),
+                    ];
+                }
+
+                getIdleColor() {
+                    const c = this.getIdleRgb();
+                    return "#" + (0x1000000 + c[0] * 0x10000 + c[1] * 0x100 + c[2]).toString(16).slice(1);
+                }
+
+                getActiveSpriteRgb() {
+                    if (config.gradientMap) {
+                        return hexToRgb(
+                            config.gradientStops[
+                                Math.floor(config.gradientStops.length * 0.5)
+                            ] || currentPalette.sprite
                         );
                     }
-                    const cBG = config.lightMode
-                        ? currentPalette.cursor
-                        : currentPalette.bg;
-                    const cACC = config.lightMode
-                        ? currentPalette.bg
-                        : currentPalette.cursor;
-                    return lerpColor(cBG, cACC, luminance * 0.4);
+                    return config.lightMode
+                        ? [
+                            Math.round(paletteRgb.sprite[0] + 0.2 * (paletteRgb.black[0] - paletteRgb.sprite[0])),
+                            Math.round(paletteRgb.sprite[1] + 0.2 * (paletteRgb.black[1] - paletteRgb.sprite[1])),
+                            Math.round(paletteRgb.sprite[2] + 0.2 * (paletteRgb.black[2] - paletteRgb.sprite[2])),
+                        ]
+                        : paletteRgb.sprite;
                 }
 
                 getActiveSpriteColor() {
@@ -947,6 +980,17 @@
                     return config.lightMode
                         ? lerpColor(currentPalette.sprite, "#000000", 0.2)
                         : currentPalette.sprite;
+                }
+
+                getActiveCursorRgb() {
+                    if (config.gradientMap) {
+                        return hexToRgb(
+                            config.gradientStops[
+                                config.gradientStops.length - 1
+                            ] || currentPalette.cursor
+                        );
+                    }
+                    return config.lightMode ? paletteRgb.bg : paletteRgb.cursor;
                 }
 
                 getActiveCursorColor() {
@@ -1334,6 +1378,7 @@
                 .getElementById("palette-select")
                 .addEventListener("change", (e) => {
                     currentPalette = PALETTES[e.target.value];
+                    updatePaletteRgb();
                     config.gradientStops = [...currentPalette.stops];
                     staticBaseDirty = true;
                     renderGradientStops();
@@ -1609,6 +1654,7 @@
             });
 
             // Boot
+            updatePaletteRgb();
             renderGradientStops();
             initGrid();
             requestAnimationFrame(loop);
