@@ -45,7 +45,15 @@
             input[type="range"] { -webkit-appearance:none;width:96px;height:1px;background:var(--border);outline:none;cursor:pointer;flex-shrink:0 }
             input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none;width:7px;height:7px;background:var(--text);border-radius:50%;cursor:pointer;opacity:0.55;transition:opacity 0.12s,transform 0.12s }
             input[type="range"]:hover::-webkit-slider-thumb { opacity:1;transform:scale(1.35) }
-            input[type="checkbox"] { accent-color:var(--text);cursor:pointer }
+            /* ── Toggle switch ── */
+            .switch { position:relative;display:inline-flex;align-items:center;width:30px;height:17px;cursor:pointer;flex-shrink:0 }
+            .switch input { opacity:0;width:0;height:0;position:absolute }
+            .switch-track { position:absolute;inset:0;background:var(--accent);border-radius:9px;transition:background 0.18s }
+            .switch input:checked ~ .switch-track { background:var(--text);opacity:0.75 }
+            .switch-thumb { position:absolute;top:3px;left:3px;width:11px;height:11px;background:var(--bg);border-radius:50%;transition:transform 0.18s,background 0.18s;pointer-events:none }
+            .switch input:checked ~ .switch-track ~ .switch-thumb { transform:translateX(13px) }
+            body.light-mode .switch-thumb { background:var(--text) }
+            .switch:focus-within .switch-track { outline:1px solid var(--text);outline-offset:2px }
             .ghost-btn { background:none;border:1px solid var(--border);color:var(--text);font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.1em;padding:6px 10px;cursor:pointer;opacity:0.57;text-transform:uppercase;transition:opacity 0.15s;width:100% }
             .ghost-btn:hover { opacity:0.9 }
             .ghost-btn:focus-visible { opacity:1;outline:1px solid var(--text);outline-offset:2px }
@@ -57,7 +65,6 @@
             .remove-stop:focus-visible { opacity:1;outline:1px solid var(--text);outline-offset:2px }
             /* ── Focus ── */
             input[type="range"]:focus-visible { outline:1px solid var(--text);outline-offset:4px;opacity:1 }
-            input[type="checkbox"]:focus-visible { outline:1px solid var(--text);outline-offset:3px }
             .import-btn:focus-visible { opacity:1;outline:1px solid var(--text);outline-offset:2px }
             /* ── Light mode contrast ── */
             body.light-mode select { opacity:0.72 }
@@ -89,12 +96,12 @@
                         </select></div>
                 </div>
                 <div class="panel-sec">
-                    <div class="ctrl-row"><label class="sec-label" for="glyph-dither-toggle">Glyph Dither</label><input type="checkbox" id="glyph-dither-toggle" checked></div>
+                    <div class="ctrl-row"><span class="sec-label">Glyph Dither</span><label class="switch"><input type="checkbox" id="glyph-dither-toggle" checked><span class="switch-track"></span><span class="switch-thumb"></span></label></div>
                     <div id="glyph-dither-controls" style="display:flex;flex-direction:column;gap:9px;">
                         <div class="ctrl-row"><label class="ctrl-label" for="dither-select">Set</label>
                             <select id="dither-select">
                                 <option value="characters">Characters</option>
-                                <option value="classic">Classic</option>
+                                <option value="classic" selected>Classic</option>
                                 <option value="unicode">Unicode</option>
                                 <option value="redacted">Redacted</option>
                                 <option value="squares">Squares</option>
@@ -116,8 +123,8 @@
                     </div>
                 </div>
                 <div class="panel-sec">
-                    <div class="ctrl-row"><label class="sec-label" for="dither-toggle">Dither</label><input type="checkbox" id="dither-toggle" checked></div>
-                    <div id="dither-controls" style="display:flex;flex-direction:column;gap:9px;">
+                    <div class="ctrl-row"><span class="sec-label">Dither</span><label class="switch"><input type="checkbox" id="dither-toggle"><span class="switch-track"></span><span class="switch-thumb"></span></label></div>
+                    <div id="dither-controls" style="display:none;flex-direction:column;gap:9px;">
                         <div class="ctrl-row"><label class="ctrl-label" for="dither-mode-select">Mode</label>
                             <select id="dither-mode-select">
                                 <option value="blueNoise" selected>Blue Noise</option>
@@ -136,7 +143,7 @@
                     </div>
                 </div>
                 <div class="panel-sec">
-                    <div class="ctrl-row"><label class="sec-label" for="gradient-toggle">Gradient Map</label><input type="checkbox" id="gradient-toggle"></div>
+                    <div class="ctrl-row"><span class="sec-label">Gradient Map</span><label class="switch"><input type="checkbox" id="gradient-toggle"><span class="switch-track"></span><span class="switch-thumb"></span></label></div>
                     <div id="gradient-controls" style="display:none;flex-direction:column;gap:9px;">
                         <div class="gradient-stops" id="gradient-stops-list"></div>
                         <button class="ghost-btn" id="add-stop-btn">+ Add Stop</button>
@@ -157,9 +164,20 @@
                     <div class="ctrl-row"><label class="ctrl-label" for="grid-size-control">Grid</label><input type="range" id="grid-size-control" min="2" max="20" step="1" value="4"><span class="ctrl-val" id="grid-size-val">4</span></div>
                 </div>
                 <div class="panel-sec">
+                    <span class="sec-label">Cursor Shape</span>
+                    <div class="ctrl-row"><label class="ctrl-label" for="cursor-ellipse-x-control">Ellipse X</label><input type="range" id="cursor-ellipse-x-control" min="0.2" max="3.0" step="0.1" value="1.0"><span class="ctrl-val" id="cursor-ellipse-x-val">1.0</span></div>
+                    <div class="ctrl-row"><label class="ctrl-label" for="cursor-ellipse-y-control">Ellipse Y</label><input type="range" id="cursor-ellipse-y-control" min="0.2" max="3.0" step="0.1" value="1.0"><span class="ctrl-val" id="cursor-ellipse-y-val">1.0</span></div>
+                    <div class="ctrl-row"><label class="ctrl-label" for="cursor-rotation-control">Rotation</label><input type="range" id="cursor-rotation-control" min="0" max="360" step="1" value="0"><span class="ctrl-val" id="cursor-rotation-val">0</span></div>
+                    <div class="ctrl-row"><label class="ctrl-label" for="cursor-cone-angle-control">Cone</label><input type="range" id="cursor-cone-angle-control" min="10" max="360" step="5" value="360"><span class="ctrl-val" id="cursor-cone-angle-val">360</span></div>
+                    <div class="ctrl-row"><label class="ctrl-label" for="cursor-dead-zone-control">Dead Zone</label><input type="range" id="cursor-dead-zone-control" min="0" max="0.8" step="0.05" value="0"><span class="ctrl-val" id="cursor-dead-zone-val">0</span></div>
+                    <div class="ctrl-row"><label class="ctrl-label" for="cursor-activation-curve-select">Activation</label>
+                        <select id="cursor-activation-curve-select"><option value="linear" selected>Linear</option><option value="quadratic">Quadratic</option><option value="cubic">Cubic</option><option value="step2">Step 2</option><option value="step3">Step 3</option></select></div>
+                    <div class="ctrl-row"><label class="ctrl-label" for="cursor-line-phase-control">Line Phase</label><input type="range" id="cursor-line-phase-control" min="0" max="1.0" step="0.05" value="0"><span class="ctrl-val" id="cursor-line-phase-val">0</span></div>
+                </div>
+                <div class="panel-sec">
                     <span class="sec-label">Cursor</span>
                     <div class="ctrl-row"><label class="ctrl-label" for="cursor-mode-select">Mode</label>
-                        <select id="cursor-mode-select"><option value="default" selected>Default</option><option value="attract">Attract</option><option value="repel">Repel</option><option value="orbit">Orbit</option><option value="drift">Drift</option></select></div>
+                        <select id="cursor-mode-select"><option value="default" selected>Default</option><option value="attract">Attract</option><option value="repel">Repel</option><option value="orbit">Orbit</option><option value="drift">Drift</option><option value="spiral">Spiral</option><option value="gravity">Gravity</option><option value="shockwave">Shockwave</option></select></div>
                     <div class="ctrl-row"><label class="ctrl-label" for="cursor-influence-control">Influence</label><input type="range" id="cursor-influence-control" min="0" max="1.0" step="0.1" value="1.0"><span class="ctrl-val" id="cursor-influence-val">1.0</span></div>
                     <div class="ctrl-row"><label class="ctrl-label" for="mouse-radius-control">Radius</label><input type="range" id="mouse-radius-control" min="40" max="1000" step="10" value="200"><span class="ctrl-val" id="mouse-radius-val">200</span></div>
                     <div class="ctrl-row"><label class="ctrl-label" for="cursor-softness-control">Softness</label><input type="range" id="cursor-softness-control" min="0.5" max="5.0" step="0.5" value="2.0"><span class="ctrl-val" id="cursor-softness-val">2.0</span></div>
@@ -169,9 +187,20 @@
                     <div class="ctrl-row"><label class="ctrl-label" for="seed-control">Seed</label><input type="range" id="seed-control" min="0" max="999" step="1" value="0"><span class="ctrl-val" id="seed-val">0</span></div>
                     <div class="ctrl-row"><label class="ctrl-label" for="cursor-lines-control">Lines</label><input type="range" id="cursor-lines-control" min="1" max="20" step="1" value="10"><span class="ctrl-val" id="cursor-lines-val">10</span></div>
                     <div class="ctrl-row"><label class="ctrl-label" for="anim-speed-control">Speed</label><input type="range" id="anim-speed-control" min="0.2" max="3.0" step="0.2" value="1.0"><span class="ctrl-val" id="anim-speed-val">1.0</span></div>
+                    <div class="ctrl-row" id="spiral-tightness-row" style="display:none"><label class="ctrl-label" for="cursor-spiral-tightness-control">Spiral</label><input type="range" id="cursor-spiral-tightness-control" min="0.1" max="6.0" step="0.1" value="2.0"><span class="ctrl-val" id="cursor-spiral-tightness-val">2.0</span></div>
+                    <div class="ctrl-row"><label class="ctrl-label" for="cursor-trail-decay-select">Trail</label>
+                        <select id="cursor-trail-decay-select"><option value="linear" selected>Linear</option><option value="exponential">Exponential</option><option value="step">Step</option><option value="sine">Sine</option></select></div>
+                    <div class="ctrl-row"><label class="ctrl-label" for="cursor-echo-count-control">Echoes</label><input type="range" id="cursor-echo-count-control" min="0" max="4" step="1" value="0"><span class="ctrl-val" id="cursor-echo-count-val">0</span></div>
+                    <div class="ctrl-row" id="echo-decay-row" style="display:none"><label class="ctrl-label" for="cursor-echo-decay-control">Echo Decay</label><input type="range" id="cursor-echo-decay-control" min="0.1" max="0.9" step="0.1" value="0.6"><span class="ctrl-val" id="cursor-echo-decay-val">0.6</span></div>
+                    <div class="ctrl-row"><label class="ctrl-label" for="cursor-idle-bloom-control">Idle Bloom</label><input type="range" id="cursor-idle-bloom-control" min="0" max="1.0" step="0.05" value="0"><span class="ctrl-val" id="cursor-idle-bloom-val">0</span></div>
                 </div>
                 <div class="panel-sec">
-                    <div class="ctrl-row"><label class="ctrl-label" for="light-mode-toggle">Light Mode</label><input type="checkbox" id="light-mode-toggle"></div>
+                    <span class="sec-label">Cursor Field</span>
+                    <div class="ctrl-row"><label class="ctrl-label" for="cursor-noise-warp-control">Noise Warp</label><input type="range" id="cursor-noise-warp-control" min="0" max="1.0" step="0.05" value="0"><span class="ctrl-val" id="cursor-noise-warp-val">0</span></div>
+                    <div class="ctrl-row"><label class="ctrl-label" for="cursor-vortex-strength-control">Vortex</label><input type="range" id="cursor-vortex-strength-control" min="-2.0" max="2.0" step="0.1" value="0"><span class="ctrl-val" id="cursor-vortex-strength-val">0</span></div>
+                </div>
+                <div class="panel-sec">
+                    <div class="ctrl-row"><span class="ctrl-label">Light Mode</span><label class="switch"><input type="checkbox" id="light-mode-toggle"><span class="switch-track"></span><span class="switch-thumb"></span></label></div>
                 </div>
                 <div class="panel-sec">
                     <button class="import-btn" id="export-png-btn">Export PNG</button>
@@ -227,9 +256,22 @@
                 interactionCharScale:3.0, spreadFactor:0.4, cursorSoftness:2.0, cursorMode:"default",
                 uuidCount:4, seed:0, lightMode:false, gradientMap:false,
                 gradientStops:[...PALETTES.original.stops], gradientPhase:0,
-                dither:"characters", glyphDitherEnabled:true,
-                ditherMode:"blueNoise", ditherEnabled:true, ditherStrength:1.0,
+                dither:"classic", glyphDitherEnabled:true,
+                ditherMode:"blueNoise", ditherEnabled:false, ditherStrength:1.0,
                 animationSpeed:1.0, cursorLines:10,
+                // Shape
+                cursorEllipseX:1.0, cursorEllipseY:1.0, cursorRotation:0, cursorDeadZone:0,
+                // Cone
+                cursorConeAngle:360,
+                // Trail / temporal
+                cursorTrailDecay:"linear", cursorEchoCount:0, cursorEchoDecay:0.6,
+                cursorIdleBloom:0,
+                // Field distortion
+                cursorNoiseWarp:0, cursorVortexStrength:0,
+                // New motion params
+                cursorSpiralTightness:2.0, shockwaveActive:false,
+                // Activation
+                cursorActivationCurve:"linear", cursorLinePhase:0,
             };
         </script>
 
@@ -253,15 +295,71 @@
             const _dBuf = []; let _dCount = 0;   // dynamic idle cells
             const _cd = [0, 0]; // cursor displacement output
 
+            // ── Cursor extended state (module-level, updated in loop()) ────────
+            let prevMouse = { x: -2000, y: -2000 };
+            let velocityDir = { x: 0, y: 1 }; // normalized travel direction
+            // Shockwave
+            let shockwaveOrigin = { x: 0, y: 0 };
+            let shockwaveTime = 0;
+            // Echo buffer — circular buffer of past mouse positions
+            const echoPositions = []; // {x, y, t} entries
+            let echoTimer = 0;
+            // Idle bloom
+            let idleStart = 0;
+            let lastMoveTime = 0;
+            let bloomRadius = 0; // current bloom-expanded radius
+
             // ── Cursor mode displacement (shared by draw + render loop) ────────
+            // Pure function — returns _cd[]. No side effects.
             function cursorDisplacement(dx, dy, x, y) {
                 _cd[0] = 0; _cd[1] = 0;
                 if (config.cursorMode === 'default' || config.cursorInfluence <= 0) return _cd;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist >= config.influenceRadius || dist <= 1) return _cd;
-                const f = Math.pow(1 - dist / config.influenceRadius, config.cursorSoftness);
-                const nx = dx / dist, ny = dy / dist;
-                const str = config.influenceRadius * 0.15 * config.cursorInfluence;
+
+                // ── Noise warp: distort the effective cursor position ──
+                let edx = dx, edy = dy;
+                if (config.cursorNoiseWarp > 0) {
+                    const nw = config.cursorNoiseWarp * config.influenceRadius * 0.3;
+                    const noiseX = Math.sin(x * 0.006 + frame.tn * 0.0009) * Math.cos(y * 0.004);
+                    const noiseY = Math.cos(x * 0.005 + frame.tn * 0.0007) * Math.sin(y * 0.006);
+                    edx += noiseX * nw;
+                    edy += noiseY * nw;
+                }
+
+                // ── Rotation: rotate [edx, edy] by -cursorRotation ──
+                if (config.cursorRotation !== 0) {
+                    const ra = -config.cursorRotation * Math.PI / 180;
+                    const cosR = Math.cos(ra), sinR = Math.sin(ra);
+                    const rdx = edx * cosR - edy * sinR;
+                    const rdy = edx * sinR + edy * cosR;
+                    edx = rdx; edy = rdy;
+                }
+
+                // ── Ellipse distance ──
+                const eR = bloomRadius || config.influenceRadius;
+                const dist = Math.sqrt((edx / config.cursorEllipseX) ** 2 + (edy / config.cursorEllipseY) ** 2)
+                           * Math.sqrt(config.cursorEllipseX * config.cursorEllipseY);
+
+                if (dist >= eR || dist <= 1) return _cd;
+
+                // ── Dead zone ──
+                if (config.cursorDeadZone > 0 && dist < eR * config.cursorDeadZone) return _cd;
+
+                // ── Cone angle filter ──
+                if (config.cursorConeAngle < 360) {
+                    const halfCone = config.cursorConeAngle * 0.5 * Math.PI / 180;
+                    const cellAngle = Math.atan2(edy, edx);
+                    const travelAngle = Math.atan2(velocityDir.y, velocityDir.x);
+                    let diff = cellAngle - travelAngle;
+                    diff = Math.atan2(Math.sin(diff), Math.cos(diff)); // normalize to [-PI, PI]
+                    if (Math.abs(diff) > halfCone) return _cd;
+                }
+
+                const norm = dist / eR;
+                const f = Math.pow(1 - norm, config.cursorSoftness);
+                const nx = edx / dist, ny = edy / dist;
+                const str = eR * 0.15 * config.cursorInfluence;
+
+                // ── Mode-specific primary displacement ──
                 if (config.cursorMode === 'attract') { _cd[0] = -nx*f*str; _cd[1] = -ny*f*str; }
                 else if (config.cursorMode === 'repel') { _cd[0] = nx*f*str; _cd[1] = ny*f*str; }
                 else if (config.cursorMode === 'orbit') {
@@ -271,8 +369,56 @@
                     const nf = 0.008;
                     _cd[0] = Math.sin(x*nf + frame.tn*0.0012)*Math.cos(y*nf*1.3 + frame.tn*0.0007)*f*str;
                     _cd[1] = Math.cos(x*nf*1.2 + frame.tn*0.0009)*Math.sin(y*nf + frame.tn*0.0011)*f*str;
+                } else if (config.cursorMode === 'spiral') {
+                    const spiralAngle = config.cursorSpiralTightness * dist / eR;
+                    const cs = Math.cos(spiralAngle), ss = Math.sin(spiralAngle);
+                    const rx = nx * cs - ny * ss, ry = nx * ss + ny * cs;
+                    _cd[0] = rx*f*str; _cd[1] = ry*f*str;
+                } else if (config.cursorMode === 'gravity') {
+                    const dot = edx * velocityDir.x + edy * velocityDir.y;
+                    const sign = dot < 0 ? -1 : 1; // behind = attract, ahead = repel
+                    _cd[0] = sign*nx*f*str; _cd[1] = sign*ny*f*str;
+                } else if (config.cursorMode === 'shockwave') {
+                    if (config.shockwaveActive) {
+                        const waveDist = frame.tn - shockwaveTime;
+                        const waveRadius = waveDist * 0.4;
+                        const waveWidth = 60;
+                        const delta = Math.abs(dist - waveRadius);
+                        if (delta < waveWidth) {
+                            const waveFalloff = 1 - delta / waveWidth;
+                            const age = Math.min(1, waveDist / 2000);
+                            _cd[0] = nx * waveFalloff * (1 - age) * str; _cd[1] = ny * waveFalloff * (1 - age) * str;
+                        }
+                    }
                 }
+
+                // ── Vortex overlay: rotate _cd by vortex angle ──
+                if (config.cursorVortexStrength !== 0) {
+                    const va = config.cursorVortexStrength * f * Math.PI * 0.5;
+                    const cv = Math.cos(va), sv = Math.sin(va);
+                    const vx = _cd[0] * cv - _cd[1] * sv;
+                    const vy = _cd[0] * sv + _cd[1] * cv;
+                    _cd[0] = vx; _cd[1] = vy;
+                }
+
                 return _cd;
+            }
+
+            // ── Echo-aware displacement (primary + ghost positions) ──────────
+            // Returns [sx, sy]. Stacks echo ghost displacements on top of primary.
+            const _ecd = [0, 0];
+            function fullDisplacement(dx, dy, x, y) {
+                const cd = cursorDisplacement(dx, dy, x, y);
+                _ecd[0] = cd[0]; _ecd[1] = cd[1];
+                for (let i = 0; i < echoPositions.length; i++) {
+                    const ep = echoPositions[i];
+                    const gdx = x - ep.x, gdy = y - ep.y;
+                    const gcd = cursorDisplacement(gdx, gdy, x, y);
+                    const decay = Math.pow(config.cursorEchoDecay, i + 1);
+                    _ecd[0] += gcd[0] * decay;
+                    _ecd[1] += gcd[1] * decay;
+                }
+                return _ecd;
             }
 
             // ── Math helpers ────────────────────────────────────────────────────
@@ -407,11 +553,16 @@
 
             // ── Character quantization with dither + glyph toggle ──────────────
             // Follows Unicorn's pattern: floor(intensity * levels + noise * str)
+            // Glyph Dither OFF → classic ramp, no spatial noise (clean ASCII art)
+            // Dither OFF → noise = 0 (getDitherOffset returns 0 when disabled)
             function quantizeChar(intensity, col, row) {
-                if (!config.glyphDitherEnabled) return '█';
-                const dset = DITHER_SETS[config.dither];
+                const dset = config.glyphDitherEnabled
+                    ? DITHER_SETS[config.dither]
+                    : DITHER_SETS.classic;
                 const n = dset.length;
-                const noise = getDitherOffset(col, row) * config.ditherStrength;
+                const noise = config.glyphDitherEnabled
+                    ? getDitherOffset(col, row) * config.ditherStrength
+                    : 0;
                 const idx = Math.max(0, Math.min(n - 1, Math.floor(intensity * n + noise)));
                 return dset[idx];
             }
@@ -589,19 +740,39 @@
 
                 trigger(now, dist) {
                     if (this.state !== "idle") return;
-                    const effR = config.influenceRadius * config.cursorInfluence;
+                    const effR = bloomRadius || (config.influenceRadius * config.cursorInfluence);
+                    // Dead zone: skip cells inside the inner exclusion ring
+                    if (config.cursorDeadZone > 0 && dist < effR * config.cursorDeadZone) return;
                     // Lines filter: skip rows that aren't on an active band
                     if (config.cursorLines < 20) {
                         const radiusRows = Math.max(1, Math.ceil(effR / this.ch));
                         const stride = Math.max(1, Math.ceil(radiusRows / config.cursorLines));
                         const cursorRow = Math.round(frame.my / this.ch);
-                        if (Math.abs(this.row - cursorRow) % stride !== 0) return;
+                        const phaseOffset = Math.round(config.cursorLinePhase * stride);
+                        if ((Math.abs(this.row - cursorRow) + phaseOffset) % stride !== 0) return;
+                    }
+                    // Cone angle filter
+                    if (config.cursorConeAngle < 360) {
+                        const halfCone = config.cursorConeAngle * 0.5 * Math.PI / 180;
+                        const cellAngle = Math.atan2(this.dy, this.dx);
+                        const travelAngle = Math.atan2(velocityDir.y, velocityDir.x);
+                        let diff = cellAngle - travelAngle;
+                        diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+                        if (Math.abs(diff) > halfCone) return;
                     }
                     const norm = dist / effR;
                     this.state = "waking";
                     this.startTime = now;
-                    // Higher softness = more gradual falloff (visually softer edges)
-                    this.triggerStrength = Math.pow(1 - norm, 1.0 / config.cursorSoftness);
+                    // Activation curve
+                    let rawCurve;
+                    switch (config.cursorActivationCurve) {
+                        case 'quadratic': rawCurve = (1 - norm) * (1 - norm); break;
+                        case 'cubic':     rawCurve = (1 - norm) ** 3; break;
+                        case 'step2':     rawCurve = norm < 0.5 ? 1 : 0; break;
+                        case 'step3':     rawCurve = norm < 0.33 ? 1 : norm < 0.66 ? 0.5 : 0; break;
+                        default:          rawCurve = 1 - norm; // linear
+                    }
+                    this.triggerStrength = Math.pow(rawCurve, 1.0 / config.cursorSoftness);
                     this.delay = norm * 150;
                     this.lastVisited = now;
                 }
@@ -610,11 +781,25 @@
                     const tn = t(now); // scaled animation time
                     this.dx = this.x + this.cw * 0.5 - frame.mx;
                     this.dy = this.y + this.ch * 0.5 - frame.my;
-                    const dist = Math.sqrt(
-                        this.dx * this.dx + this.dy * this.dy,
-                    );
 
-                    const effRadius = config.influenceRadius * config.cursorInfluence;
+                    // ── Effective distance (accounts for ellipse + rotation + noise warp) ──
+                    let edx = this.dx, edy = this.dy;
+                    if (config.cursorNoiseWarp > 0) {
+                        const nw = config.cursorNoiseWarp * config.influenceRadius * 0.3;
+                        edx += Math.sin(this.x * 0.006 + frame.tn * 0.0009) * Math.cos(this.y * 0.004) * nw;
+                        edy += Math.cos(this.x * 0.005 + frame.tn * 0.0007) * Math.sin(this.y * 0.006) * nw;
+                    }
+                    if (config.cursorRotation !== 0) {
+                        const ra = -config.cursorRotation * Math.PI / 180;
+                        const cosR = Math.cos(ra), sinR = Math.sin(ra);
+                        const rdx = edx * cosR - edy * sinR;
+                        const rdy = edx * sinR + edy * cosR;
+                        edx = rdx; edy = rdy;
+                    }
+                    const dist = Math.sqrt((edx / config.cursorEllipseX) ** 2 + (edy / config.cursorEllipseY) ** 2)
+                               * Math.sqrt(config.cursorEllipseX * config.cursorEllipseY);
+
+                    const effRadius = bloomRadius || (config.influenceRadius * config.cursorInfluence);
                     if (dist < effRadius) this.trigger(tn, dist);
 
                     const elapsed = tn - this.startTime - this.delay;
@@ -681,10 +866,18 @@
                         const sVal = getSpriteInfluence(this.x, this.y, now);
 
                         if (timeSinceVisit < 600) {
+                            let trailProgress;
+                            const raw = timeSinceVisit / 600;
+                            switch (config.cursorTrailDecay) {
+                                case 'exponential': trailProgress = easeOutExpo(raw); break;
+                                case 'step':        trailProgress = raw < 0.5 ? 0 : 1; break;
+                                case 'sine':        trailProgress = 0.5 - 0.5 * Math.cos(Math.PI * raw); break;
+                                default:            trailProgress = raw; // linear
+                            }
                             this.color = lerpColor(
                                 this.getActiveCursorColor(),
                                 this.getIdleColor(),
-                                easeOutExpo(timeSinceVisit / 600),
+                                trailProgress,
                             );
                             this.displayChar = this.baseChar;
                         } else if (sVal > 0.01) {
@@ -765,7 +958,7 @@
                     if (pass === "base" && isInteraction) return;
                     if (pass === "interaction" && !isInteraction) return;
                     const baseFS = Math.floor(this.ch * 0.9);
-                    const cd = cursorDisplacement(this.dx, this.dy, this.x, this.y);
+                    const cd = fullDisplacement(this.dx, this.dy, this.x, this.y);
                     let sx = cd[0], sy = cd[1];
                     if (isInteraction) {
                         sx += this.dx * (this.currentScale - 1.0) * config.spreadFactor;
@@ -870,9 +1063,6 @@
                 frame.my = mouse.y - box.top;
 
                 // ── Rescale stored timestamps when animationSpeed changes ──
-                // All cell startTime/mutationTimer/lastVisited are in scaled time.
-                // When speed changes, tn jumps, making elapsed huge and causing glitches.
-                // Fix: shift every stored timestamp by the delta so elapsed stays smooth.
                 if (config.animationSpeed !== frame.lastAnimSpeed) {
                     const delta = now * (config.animationSpeed - frame.lastAnimSpeed);
                     for (let i = 0; i < grid.length; i++) {
@@ -889,9 +1079,64 @@
 
                 frame.tn = t(now);
 
+                // ── Velocity direction tracker (exponentially smoothed) ──
+                const vdx = frame.mx - prevMouse.x, vdy = frame.my - prevMouse.y;
+                const vlen = Math.sqrt(vdx * vdx + vdy * vdy);
+                if (vlen > 1) {
+                    velocityDir.x += (vdx / vlen - velocityDir.x) * 0.2;
+                    velocityDir.y += (vdy / vlen - velocityDir.y) * 0.2;
+                    const vn = Math.sqrt(velocityDir.x ** 2 + velocityDir.y ** 2);
+                    if (vn > 0.001) { velocityDir.x /= vn; velocityDir.y /= vn; }
+                    lastMoveTime = frame.tn;
+                    idleStart = 0;
+                }
+                prevMouse.x = frame.mx; prevMouse.y = frame.my;
+
+                // ── Idle bloom ──
+                if (config.cursorIdleBloom > 0) {
+                    if (vlen <= 1) {
+                        if (idleStart === 0) idleStart = frame.tn;
+                        const idleDur = frame.tn - idleStart;
+                        if (idleDur > 800) {
+                            const progress = Math.min(1, (idleDur - 800) / 2000);
+                            bloomRadius = config.influenceRadius * config.cursorInfluence *
+                                (1 + config.cursorIdleBloom * 0.5 * progress);
+                        } else {
+                            bloomRadius = config.influenceRadius * config.cursorInfluence;
+                        }
+                    } else {
+                        idleStart = 0;
+                        bloomRadius = config.influenceRadius * config.cursorInfluence;
+                    }
+                } else {
+                    bloomRadius = 0; // 0 = use default effR everywhere
+                }
+
+                // ── Echo buffer (update every 80ms) ──
+                if (config.cursorEchoCount > 0) {
+                    if (frame.tn - echoTimer > 80) {
+                        echoPositions.unshift({ x: frame.mx, y: frame.my });
+                        while (echoPositions.length > config.cursorEchoCount)
+                            echoPositions.pop();
+                        echoTimer = frame.tn;
+                    }
+                } else {
+                    echoPositions.length = 0;
+                }
+
+                // ── Shockwave expiry ──
+                if (config.shockwaveActive) {
+                    const waveDist = frame.tn - shockwaveTime;
+                    const eR = bloomRadius || (config.influenceRadius * config.cursorInfluence);
+                    if (waveDist * 0.4 > eR * 2) config.shockwaveActive = false;
+                }
+
                 const spriteZone = computeSpriteZone(now);
-                const effR = config.influenceRadius * config.cursorInfluence;
-                const rSq = effR * effR;
+                const effR = bloomRadius || (config.influenceRadius * config.cursorInfluence);
+                // Expand culling radius for ellipse stretch + noise warp margin
+                const cullR = effR * Math.max(config.cursorEllipseX, config.cursorEllipseY, 1)
+                            + config.cursorNoiseWarp * config.influenceRadius * 0.3;
+                const rSq = cullR * cullR;
 
                 // ── Phase 1: Update with spatial culling ──
                 _iCount = 0; _dCount = 0;
@@ -927,7 +1172,7 @@
                     ctx.fillStyle = bg;
                     ctx.fillRect(cell.x, cell.y, cell.cw, cell.ch);
                     if (cell.displayChar === ' ') continue;
-                    const cd = cursorDisplacement(cell.dx, cell.dy, cell.x, cell.y);
+                    const cd = fullDisplacement(cell.dx, cell.dy, cell.x, cell.y);
                     ctx.fillStyle = cell.color;
                     ctx.fillText(cell.displayChar, cell.x + cell.cw * 0.5 + cd[0], cell.y + cell.ch * 0.5 + cd[1]);
                 }
@@ -1134,7 +1379,50 @@
                 .getElementById("cursor-mode-select")
                 .addEventListener("change", (e) => {
                     config.cursorMode = e.target.value;
+                    document.getElementById("spiral-tightness-row").style.display =
+                        config.cursorMode === "spiral" ? "flex" : "none";
                 });
+
+            // ── Cursor Shape controls ──
+            bindSlider("cursor-ellipse-x-control", "cursor-ellipse-x-val", "cursorEllipseX", parseFloat);
+            bindSlider("cursor-ellipse-y-control", "cursor-ellipse-y-val", "cursorEllipseY", parseFloat);
+            bindSlider("cursor-rotation-control", "cursor-rotation-val", "cursorRotation", parseInt);
+            bindSlider("cursor-cone-angle-control", "cursor-cone-angle-val", "cursorConeAngle", parseInt);
+            bindSlider("cursor-dead-zone-control", "cursor-dead-zone-val", "cursorDeadZone", parseFloat);
+            bindSlider("cursor-line-phase-control", "cursor-line-phase-val", "cursorLinePhase", parseFloat);
+            document
+                .getElementById("cursor-activation-curve-select")
+                .addEventListener("change", (e) => { config.cursorActivationCurve = e.target.value; });
+
+            // ── Cursor extended controls ──
+            bindSlider("cursor-spiral-tightness-control", "cursor-spiral-tightness-val", "cursorSpiralTightness", parseFloat);
+            document
+                .getElementById("cursor-trail-decay-select")
+                .addEventListener("change", (e) => { config.cursorTrailDecay = e.target.value; });
+            bindSlider("cursor-echo-count-control", "cursor-echo-count-val", "cursorEchoCount", parseInt, {
+                after: () => {
+                    document.getElementById("echo-decay-row").style.display =
+                        config.cursorEchoCount > 0 ? "flex" : "none";
+                }
+            });
+            bindSlider("cursor-echo-decay-control", "cursor-echo-decay-val", "cursorEchoDecay", parseFloat);
+            bindSlider("cursor-idle-bloom-control", "cursor-idle-bloom-val", "cursorIdleBloom", parseFloat);
+
+            // ── Cursor Field controls ──
+            bindSlider("cursor-noise-warp-control", "cursor-noise-warp-val", "cursorNoiseWarp", parseFloat);
+            bindSlider("cursor-vortex-strength-control", "cursor-vortex-strength-val", "cursorVortexStrength", parseFloat);
+
+            // ── Shockwave click listener ──
+            canvas.addEventListener("mousedown", () => {
+                if (config.cursorMode === 'shockwave') {
+                    const box = canvas.getBoundingClientRect();
+                    shockwaveOrigin.x = mouse.x - box.left;
+                    shockwaveOrigin.y = mouse.y - box.top;
+                    shockwaveTime = frame.tn;
+                    config.shockwaveActive = true;
+                }
+            });
+
             document
                 .getElementById("gradient-phase-control")
                 .addEventListener("input", (e) => {
