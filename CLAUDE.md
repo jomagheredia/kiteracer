@@ -15,8 +15,15 @@
 - Commit after each working change
 
 ## Current state
-- Working: image import, 5 palettes, 5 dither sets,
-  sprite presets (scan/pulse/wave), UUID crystallization,
-  gradient mapping, mouse interaction with spread/scale
-- Pending: animation speed control, export (image + code),
-  UI/UX polish
+- Shipped: image import; first load fetches a random felid texture
+  from Wikimedia Commons (remote boot, falls back to engine if fetch fails)
+- Palettes: standalone presets plus optgrouped sets (Ghostty, Zed, Cursor)
+- Dither: pixel modes (blue noise variants, Bayer, IGN, halftone, etc.) and
+  many glyph character sets; gradient map with stops; UUID crystallization
+- Motion: sprite presets (scan / pulse / wave + flow), animation speed slider
+  (smooth speed ramp)
+- Cursor: interaction modes, pin, trails/echoes, field controls; mouse radius,
+  spread, interaction scale, softness
+- Theme: light mode toggle (surface inversion)
+- Export: PNG download; self-contained HTML player export (embedded palette + config)
+- Pending: UI/UX polish
