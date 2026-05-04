@@ -15,6 +15,7 @@
 - Commit after each working change
 
 ## Current state
+- Entry: ship and open `src/index.html` (Netlify publishes `src/`; `/kiteracer.html` redirects to `/`).
 - Shipped: image import; first load fetches a random felid texture
   from Wikimedia Commons (remote boot, falls back to engine if fetch fails)
 - Palettes: standalone presets plus optgrouped sets (Ghostty, Zed, Cursor)
