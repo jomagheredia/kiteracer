@@ -1,0 +1,11 @@
+# Static single-file app — no build step.
+# https://docs.netlify.com/configure-builds/file-based-configuration/
+
+[build]
+  publish = "src"
+
+# App lives at kiteracer.html; serve it at the site root.
+[[redirects]]
+  from = "/"
+  to = "/kiteracer.html"
+  status = 200
