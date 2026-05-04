@@ -294,6 +294,10 @@
 
         <!-- ── Engine: Cell, utilities, render loop ──────────────────────────── -->
         <script id="engine">
+            //#region Setup — canvas, grid, frame buffers
+            // ═══════════════════════════════════════════════════════════════════════
+            // ── Canvas, grid state, frame buffers ──────────────────────────────────
+            // ═══════════════════════════════════════════════════════════════════════
             const canvas = document.getElementById("main-canvas");
             const ctx = canvas.getContext("2d", { alpha: false });
 
@@ -325,8 +329,11 @@
             let idleStart = 0;
             let lastMoveTime = 0;
             let bloomRadius = 0; // current bloom-expanded radius
-
-            // ── Cursor mode displacement (shared by draw + render loop) ────────
+            //#endregion
+            //#region Cursor displacement & echo stack
+            // ═══════════════════════════════════════════════════════════════════════
+            // ── Cursor displacement (modes, warp, vortex, echoes) ─────────────────
+            // ═══════════════════════════════════════════════════════════════════════
             // Pure function — returns _cd[]. No side effects.
             function cursorDisplacement(dx, dy, x, y) {
                 _cd[0] = 0; _cd[1] = 0;
@@ -437,8 +444,11 @@
                 }
                 return _ecd;
             }
-
-            // ── Math helpers ────────────────────────────────────────────────────
+            //#endregion
+            //#region Math, PRNG & color utilities
+            // ═══════════════════════════════════════════════════════════════════════
+            // ── Math helpers, PRNG, hex / RGB ───────────────────────────────────
+            // ═══════════════════════════════════════════════════════════════════════
 
             const easeOutExpo = (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
 
@@ -486,7 +496,11 @@
             function lerpColor(a, b, n) {
                 return lerpRgb(hexToRgb(a), hexToRgb(b), n);
             }
-
+            //#endregion
+            //#region Animation time, dither tables & quantization
+            // ═══════════════════════════════════════════════════════════════════════
+            // ── Scaled time, Bayer / noise, quantizeChar ─────────────────────────
+            // ═══════════════════════════════════════════════════════════════════════
             // ── Animation speed scaler ──────────────────────────────────────────
             // t(now) converts wall-clock ms to scaled animation time.
             // All state timestamps and thresholds operate in this domain.
@@ -579,8 +593,11 @@
                 const idx = Math.max(0, Math.min(n - 1, Math.floor(intensity * n + noise)));
                 return dset[idx];
             }
-
-            // ── Sprite influence field ───────────────────────────────────────────
+            //#endregion
+            //#region Sprite field, UUID crystallization & culling zones
+            // ═══════════════════════════════════════════════════════════════════════
+            // ── Sprite influence, UUID groups, spatial zones ────────────────────
+            // ═══════════════════════════════════════════════════════════════════════
 
             function getSpriteInfluence(x, y, now) {
                 if (config.sprite === "none") return 0;
@@ -695,8 +712,11 @@
                 const d = Math.sqrt(dx * dx + dy * dy);
                 return d >= zone.rMin && d <= zone.rMax;
             }
-
-            // ── Static base layer (OffscreenCanvas) ─────────────────────────────
+            //#endregion
+            //#region Static base layer (offscreen cache)
+            // ═══════════════════════════════════════════════════════════════════════
+            // ── Static base layer (OffscreenCanvas) ───────────────────────────────
+            // ═══════════════════════════════════════════════════════════════════════
             // Caches the idle, no-influence appearance of every cell.
             // Rebuilt only on config changes; composited via drawImage each frame.
 
@@ -724,8 +744,11 @@
                 }
                 staticBaseDirty = false;
             }
-
-            // ── Cell class ───────────────────────────────────────────────────────
+            //#endregion
+            //#region Cell
+            // ═══════════════════════════════════════════════════════════════════════
+            // ── Cell class (state machine, draw) ──────────────────────────────────
+            // ═══════════════════════════════════════════════════════════════════════
 
             class Cell {
                 constructor(col, row, cw, ch) {
@@ -1027,8 +1050,11 @@
                     ctx.restore();
                 }
             }
-
-            // ── Grid management ──────────────────────────────────────────────────
+            //#endregion
+            //#region Grid — viewport, density, init
+            // ═══════════════════════════════════════════════════════════════════════
+            // ── Grid management ───────────────────────────────────────────────────
+            // ═══════════════════════════════════════════════════════════════════════
 
             function adaptViewport() {
                 const margin = 0.92;
@@ -1103,8 +1129,11 @@
                 }
                 staticBaseDirty = true;
             }
-
-            // ── Render loop (phased pipeline) ───────────────────────────────────
+            //#endregion
+            //#region Render loop
+            // ═══════════════════════════════════════════════════════════════════════
+            // ── Phased render loop ──────────────────────────────────────────────────
+            // ═══════════════════════════════════════════════════════════════════════
             //
             //  Phase 1  Update with spatial culling — skip idle cells outside
             //           cursor radius, sprite zone, and recently-visited window.
@@ -1253,10 +1282,15 @@
 
                 requestAnimationFrame(loop);
             }
+            //#endregion
         </script>
 
         <!-- ── UI: event listeners & boot ───────────────────────────────────── -->
         <script>
+            //#region Panel drawer, pin & gradient list UI
+            // ═══════════════════════════════════════════════════════════════════════
+            // ── Side panel, pin, gradient stops UI ────────────────────────────────
+            // ═══════════════════════════════════════════════════════════════════════
             const fileInput  = document.getElementById('file-input');
             const panel      = document.getElementById('panel');
             const trigger    = document.getElementById('panel-trigger');
@@ -1342,8 +1376,11 @@
                     });
                 });
             }
-
-            // Global input events
+            //#endregion
+            //#region Global input, import & resize
+            // ═══════════════════════════════════════════════════════════════════════
+            // ── Global pointer, resize, file import ───────────────────────────────
+            // ═══════════════════════════════════════════════════════════════════════
             window.addEventListener("mousemove", (e) => {
                 mouse.x = e.clientX;
                 mouse.y = e.clientY;
@@ -1372,8 +1409,11 @@
                 };
                 reader.readAsDataURL(f);
             });
-
-            // Palette & dither
+            //#endregion
+            //#region Control bindings — palette through light mode
+            // ═══════════════════════════════════════════════════════════════════════
+            // ── Palette, dither, grid, cursor, sprite, theme ───────────────────────
+            // ═══════════════════════════════════════════════════════════════════════
             document
                 .getElementById("palette-select")
                 .addEventListener("change", (e) => {
@@ -1577,8 +1617,11 @@
                         config.lightMode,
                     );
                 });
-
-            // ── Export helpers ────────────────────────────────────────────────
+            //#endregion
+            //#region Export PNG & self-contained player HTML
+            // ═══════════════════════════════════════════════════════════════════════
+            // ── Export helpers & download handlers ────────────────────────────────
+            // ═══════════════════════════════════════════════════════════════════════
             function exportTimestamp() {
                 const d = new Date();
                 const pad = n => String(n).padStart(2, '0');
@@ -1652,8 +1695,11 @@
                 const blob = new Blob([html], { type: 'text/html' });
                 downloadBlob(blob, `kiteracer-player-${exportTimestamp()}.html`);
             });
-
-            // Boot — load a random felid from Wikimedia Commons (en.wikipedia.org/wiki/Felidae)
+            //#endregion
+            //#region Boot — default texture & engine start
+            // ═══════════════════════════════════════════════════════════════════════
+            // ── Boot — Wikimedia felid or engine fallback ───────────────────────────
+            // ═══════════════════════════════════════════════════════════════════════
             const DEFAULT_IMAGES = [
                 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Panthera_tigris_tigris_edit2.jpg/800px-Panthera_tigris_tigris_edit2.jpg',
                 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Canadian_lynx_by_Keith_Williams.jpg/800px-Canadian_lynx_by_Keith_Williams.jpg',
@@ -1688,6 +1734,7 @@
                     img.src = objUrl;
                 }).catch(() => bootEngine());
             })();
+            //#endregion
         </script>
     </body>
 </html>
