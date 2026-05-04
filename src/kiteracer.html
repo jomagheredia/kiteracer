@@ -509,13 +509,15 @@
                             m[y][x] = 4*v; m[y][x+hn] = 4*v+2;
                             m[y+hn][x] = 4*v+3; m[y+hn][x+hn] = 4*v+1;
                         }
-                    const n2 = n * n;
+                    return m;
+                }
+                [4, 8, 16].forEach(n => {
+                    const m = gen(n), n2 = n * n;
                     for (let y = 0; y < n; y++)
                         for (let x = 0; x < n; x++)
                             m[y][x] = (m[y][x] + 0.5) / n2 - 0.5;
-                    return m;
-                }
-                BAYER[4] = gen(4); BAYER[8] = gen(8); BAYER[16] = gen(16);
+                    BAYER[n] = m;
+                });
             })();
 
             // ── PCG2D hash (from Unicorn Studio — high-quality integer noise) ──
@@ -566,16 +568,14 @@
 
             // ── Character quantization with dither + glyph toggle ──────────────
             // Follows Unicorn's pattern: floor(intensity * levels + noise * str)
-            // Glyph Dither OFF → classic ramp, no spatial noise (clean ASCII art)
+            // Glyph Dither OFF → classic ramp    Glyph Dither ON → alternate glyph set
             // Dither OFF → noise = 0 (getDitherOffset returns 0 when disabled)
             function quantizeChar(intensity, col, row) {
                 const dset = config.glyphDitherEnabled
                     ? DITHER_SETS[config.dither]
                     : DITHER_SETS.classic;
                 const n = dset.length;
-                const noise = config.glyphDitherEnabled
-                    ? getDitherOffset(col, row) * config.ditherStrength
-                    : 0;
+                const noise = getDitherOffset(col, row) * config.ditherStrength;
                 const idx = Math.max(0, Math.min(n - 1, Math.floor(intensity * n + noise)));
                 return dset[idx];
             }
@@ -1653,11 +1653,41 @@
                 downloadBlob(blob, `kiteracer-player-${exportTimestamp()}.html`);
             });
 
-            // Boot
+            // Boot — load a random felid from Wikimedia Commons (en.wikipedia.org/wiki/Felidae)
+            const DEFAULT_IMAGES = [
+                'https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Panthera_tigris_tigris_edit2.jpg/800px-Panthera_tigris_tigris_edit2.jpg',
+                'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Canadian_lynx_by_Keith_Williams.jpg/800px-Canadian_lynx_by_Keith_Williams.jpg',
+                'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Ocelot_%28Leopardus_pardalis%29-8.jpg/800px-Ocelot_%28Leopardus_pardalis%29-8.jpg',
+                'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Serval_%28Leptailurus_serval%29_%2814034520905%29.jpg/800px-Serval_%28Leptailurus_serval%29_%2814034520905%29.jpg',
+                'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Sisters_grooming_%289997099123%29.jpg/800px-Sisters_grooming_%289997099123%29.jpg',
+                'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/%27Lex%27_%285628421693%29.jpg/800px-%27Lex%27_%285628421693%29.jpg',
+                'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Cougar.jpg/800px-Cougar.jpg',
+            ];
             updatePaletteRgb();
             renderGradientStops();
-            initGrid();
-            requestAnimationFrame(loop);
+            function bootEngine() { initGrid(); requestAnimationFrame(loop); }
+            (function loadDefaultImage() {
+                const url = DEFAULT_IMAGES[Math.floor(Math.random() * DEFAULT_IMAGES.length)];
+                fetch(url).then(r => {
+                    if (!r.ok) throw new Error(r.status);
+                    return r.blob();
+                }).then(blob => {
+                    const objUrl = URL.createObjectURL(blob);
+                    const img = new Image();
+                    img.onload = () => {
+                        imageAspectRatio = img.width / img.height;
+                        const tmp = document.createElement('canvas');
+                        tmp.width = img.width;
+                        tmp.height = img.height;
+                        tmp.getContext('2d').drawImage(img, 0, 0);
+                        imageBuffer = tmp.getContext('2d').getImageData(0, 0, img.width, img.height);
+                        URL.revokeObjectURL(objUrl);
+                        bootEngine();
+                    };
+                    img.onerror = () => { URL.revokeObjectURL(objUrl); bootEngine(); };
+                    img.src = objUrl;
+                }).catch(() => bootEngine());
+            })();
         </script>
     </body>
 </html>
