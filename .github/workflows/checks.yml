@@ -1,0 +1,48 @@
+name: kiteracer checks
+
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+    branches: [main, staging]
+
+jobs:
+  lint:
+    name: Project rules
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: File size — each src file must be under 800 lines
+        run: |
+          failed=0
+          while IFS= read -r f; do
+            lines=$(wc -l < "$f")
+            echo "$f: ${lines} lines"
+            if [ "$lines" -gt 800 ]; then
+              echo "::error file=$f::File exceeds 800-line limit (${lines} lines)."
+              failed=1
+            fi
+          done < <(find src -type f \( -name '*.html' -o -name '*.js' -o -name '*.css' \) | sort)
+          exit "$failed"
+
+      - name: No external JS libraries
+        run: |
+          # Fail if a <script src="..."> points at a remote URL other than Google Fonts
+          banned=$(grep -nE '<script[^>]+src=' src/index.html \
+            | grep -v 'fonts\.googleapis\.com' \
+            | grep -v 'fonts\.gstatic\.com' \
+            | grep -E 'src="https?://' || true)
+          if [ -n "$banned" ]; then
+            echo "::error file=src/index.html::Remote <script src> found — no libraries allowed."
+            echo "$banned"
+            exit 1
+          fi
+
+      - name: No WebGL
+        run: |
+          if grep -Rqn 'getContext.*webgl\|WebGLRenderingContext' src; then
+            echo "::error::WebGL usage detected. Canvas 2D only."
+            grep -Rn 'getContext.*webgl\|WebGLRenderingContext' src || true
+            exit 1
+          fi
