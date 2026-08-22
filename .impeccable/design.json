@@ -1,0 +1,58 @@
+{
+  "name": "kiteracer",
+  "description": "ASCII animation lab with a monochrome instrument panel around a canvas stage.",
+  "colors": {
+    "void": "#080808",
+    "panel-night": "#090909",
+    "rail": "#1c1c1c",
+    "porcelain-ink": "#f0f0ee",
+    "graphite-tame": "#363636",
+    "stage-black": "#000000",
+    "void-day": "#f0f0ee",
+    "panel-day": "#f2f2f0",
+    "rail-day": "#d0d0ce",
+    "charcoal-ink": "#080808",
+    "graphite-tame-day": "#b4b4b2"
+  },
+  "typography": {
+    "wordmark": {
+      "fontFamily": "'Geist Mono', ui-monospace, monospace",
+      "fontSize": "10px",
+      "fontWeight": 400,
+      "lineHeight": 1,
+      "letterSpacing": "0.22em"
+    },
+    "section-marker": {
+      "fontFamily": "'Geist Mono', ui-monospace, monospace",
+      "fontSize": "10px",
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "letterSpacing": "0.18em"
+    },
+    "control": {
+      "fontFamily": "'Geist Mono', ui-monospace, monospace",
+      "fontSize": "10px",
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "letterSpacing": "0.1em"
+    },
+    "data": {
+      "fontFamily": "'Geist Mono', ui-monospace, monospace",
+      "fontSize": "9px",
+      "fontWeight": 400,
+      "lineHeight": 1.2,
+      "letterSpacing": "0em"
+    }
+  },
+  "layout": {
+    "panelWidth": 252,
+    "triggerWidth": 20,
+    "headerHeight": 52,
+    "sectionPad": "13px 20px"
+  },
+  "motion": {
+    "panelEase": "cubic-bezier(0.16, 1, 0.3, 1)",
+    "panelMs": 180,
+    "peekCloseMs": 280
+  }
+}
