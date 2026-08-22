@@ -1,0 +1,9 @@
+# AI tooling — local dev environment only
+.agents/
+.claude/
+.impeccable.md
+.impeccable/live/
+skills-lock.json
+
+# macOS
+.DS_Store
